@@ -13,3 +13,4 @@ D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Application\obj\Debug\net8.0\Ap
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Application\obj\Debug\net8.0\refint\Application.dll
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Application\obj\Debug\net8.0\Application.pdb
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Application\obj\Debug\net8.0\ref\Application.dll
+D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Application\obj\Debug\net8.0\Application.sourcelink.json

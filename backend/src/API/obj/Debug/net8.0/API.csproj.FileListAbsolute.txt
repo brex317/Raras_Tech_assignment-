@@ -37,3 +37,4 @@ D:\Raras_Tech\Raras_Tech_assignment-\backend\src\API\obj\Debug\net8.0\refint\API
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\API\obj\Debug\net8.0\API.pdb
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\API\obj\Debug\net8.0\API.genruntimeconfig.cache
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\API\obj\Debug\net8.0\ref\API.dll
+D:\Raras_Tech\Raras_Tech_assignment-\backend\src\API\obj\Debug\net8.0\API.sourcelink.json

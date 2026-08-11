@@ -9,3 +9,4 @@ D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Domain\obj\Debug\net8.0\Domain.
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Domain\obj\Debug\net8.0\refint\Domain.dll
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Domain\obj\Debug\net8.0\Domain.pdb
 D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Domain\obj\Debug\net8.0\ref\Domain.dll
+D:\Raras_Tech\Raras_Tech_assignment-\backend\src\Domain\obj\Debug\net8.0\Domain.sourcelink.json
