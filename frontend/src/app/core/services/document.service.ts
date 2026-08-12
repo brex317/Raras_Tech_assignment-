@@ -2,13 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { AssetDocumentDto } from '../models/models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:5165/api/assetdocuments';
+  private readonly apiUrl = `${environment.apiUrl}/assetdocuments`;
 
   uploadDocument(assetId: string, file: File, documentType: string): Observable<AssetDocumentDto> {
     const formData = new FormData();

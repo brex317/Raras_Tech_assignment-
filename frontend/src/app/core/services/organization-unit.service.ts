@@ -2,13 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { OrganizationUnitDto, OrganizationUnitTreeDto } from '../models/models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrganizationUnitService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:5165/api/organizationunits';
+  private readonly apiUrl = `${environment.apiUrl}/organizationunits`;
+
 
   getTree(): Observable<OrganizationUnitTreeDto[]> {
     return this.http.get<OrganizationUnitTreeDto[]>(`${this.apiUrl}/tree`);
