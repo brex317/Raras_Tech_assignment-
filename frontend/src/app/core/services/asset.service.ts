@@ -2,13 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AssetDto, AssetDetailDto, PagedResult } from '../models/models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AssetService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:5165/api/assets';
+   private readonly apiUrl = `${environment.apiUrl}/assets`;
 
   getAssets(
     page: number = 1,
