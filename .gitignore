@@ -1,0 +1,13 @@
+# .NET build output
+bin/
+obj/
+*.user
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+
+# Uploaded sample files
+backend/src/API/uploads/
+backend/uploads/
