@@ -26,9 +26,9 @@ import { AuthService } from '../../../core/services/auth.service';
     MatSnackBarModule
   ],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-cyan-950 py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-md w-full space-y-8 animate-fade-in">
-        
+
         <div class="text-center">
           <div class="inline-flex items-center justify-center p-3 bg-white rounded-2xl border border-slate-700/40 mb-4 shadow-2xl">
             <img src="assets/logo.svg" alt="RARAS Technologies" class="h-14 w-auto object-contain" />
@@ -37,13 +37,13 @@ import { AuthService } from '../../../core/services/auth.service';
           <p class="mt-2 text-sm text-slate-300 font-medium">Organization Asset Management System</p>
         </div>
 
-        <mat-card class="!p-8 !rounded-2xl !bg-white/95 !backdrop-blur-md !border-white/20 !shadow-2xl">
+        <mat-card class="p-8! rounded-2xl! bg-white/95! backdrop-blur-md! border-white/20! shadow-2xl!">
           <mat-progress-bar *ngIf="loading()" mode="query" class="absolute top-0 left-0 right-0 rounded-t-2xl"></mat-progress-bar>
-          
+
           <h3 class="text-xl font-bold text-slate-800 mb-6 font-sans">Sign in to your account</h3>
 
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
-            
+
             <!-- Email -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Email address</mat-label>
@@ -69,7 +69,7 @@ import { AuthService } from '../../../core/services/auth.service';
               </mat-error>
             </mat-form-field>
 
-            <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading()" class="w-full !py-6 !font-semibold shadow-lg">
+            <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading()" class="w-full py-6! font-semibold! shadow-lg">
               Sign In
             </button>
           </form>

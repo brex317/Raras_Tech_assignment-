@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { LoginResponse, UserDto } from '../models/models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ import { LoginResponse, UserDto } from '../models/models';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly apiUrl = 'http://localhost:5165/api/auth';
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
 
   // Signals for state management
   readonly currentUser = signal<UserDto | null>(null);
