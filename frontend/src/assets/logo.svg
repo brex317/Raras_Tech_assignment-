@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 240" width="100%" height="100%">
+  <!-- Stylized Red 'R' Icon -->
+  <path d="M 120,40 
+           C 165,38 215,42 245,72 
+           C 275,102 265,145 220,165 
+           L 185,150 
+           C 210,135 220,110 205,90 
+           C 190,70 155,68 125,68 
+           L 125,120 
+           C 145,110 160,120 170,135 
+           L 245,215 
+           C 260,230 270,235 285,240 
+           L 250,225 
+           C 220,200 180,150 160,135 
+           C 145,125 130,130 120,140 
+           L 120,205 
+           C 115,225 105,235 85,235 
+           L 85,75 
+           C 85,55 95,42 120,40 Z" 
+        fill="#E51919"/>
+  <!-- Sharp Bottom Tail of 'R' -->
+  <path d="M 105,40 H 210 C 255,40 270,80 245,115 C 225,145 195,145 180,145 L 285,235 C 265,220 220,175 190,145 L 140,145 V 225 C 140,235 115,235 105,225 Z M 140,70 V 115 H 190 C 215,115 225,95 215,80 C 205,70 185,70 165,70 Z" fill="#E51919" />
+  
+  <!-- "Raras" Text in Dark Navy -->
+  <text x="260" y="125" font-family="'Plus Jakarta Sans', 'Outfit', Arial, sans-serif" font-weight="900" font-size="64" fill="#0A1128" letter-spacing="-1">Raras</text>
+  
+  <!-- "TECHNOLOGIES" Subtext -->
+  <text x="262" y="165" font-family="'Outfit', 'Plus Jakarta Sans', Arial, sans-serif" font-weight="700" font-size="22" fill="#0A1128" letter-spacing="8">TECHNOLOGIES</text>
+</svg>

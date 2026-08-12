@@ -1,3 +1,82 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+
+/* Core design variables and theme styling */
+:root {
+  --font-family-title: 'Outfit', sans-serif;
+  --font-family-body: 'Plus Jakarta Sans', sans-serif;
+  
+  /* RARAS Technologies Brand Color Palette */
+  --color-primary-50: #ecfeff;
+  --color-primary-100: #cffafe;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-accent-500: #10b981;
+  --color-neutral-900: #0f172a;
+}
+
+body {
+  font-family: var(--font-family-body);
+  color: var(--color-neutral-900);
+  background-color: #f8fafc;
+  margin: 0;
+  height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-title);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Material component visual adjustments for premium look */
+.mat-mdc-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05) !important;
+  border: 1px solid #f1f5f9 !important;
+  background: white !important;
+}
+
+.mat-mdc-button, .mat-mdc-raised-button, .mat-mdc-unelevated-button {
+  border-radius: 8px !important;
+  font-family: var(--font-family-title) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-dialog-container {
+  border-radius: 20px !important;
+}
+
+/* Customized scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Premium Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
