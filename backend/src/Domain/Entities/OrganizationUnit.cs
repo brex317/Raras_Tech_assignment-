@@ -11,7 +11,10 @@ public class OrganizationUnit
     public OrganizationUnit? Parent { get; set; }
     public ICollection<OrganizationUnit> Children { get; set; } = new List<OrganizationUnit>();
 
-    // Materialized path, e.g. "/1/4/9/" - stores the full ancestor chain.
+    /// <summary>
+    /// Materialized path storing the full ancestor chain, e.g. "/rootId/parentId/thisId/".
+    /// Used for efficient hierarchy queries and circular reference prevention.
+    /// </summary>
     public string Path { get; set; } = string.Empty;
     public int Level { get; set; }
 
