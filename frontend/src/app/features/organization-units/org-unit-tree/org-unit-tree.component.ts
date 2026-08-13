@@ -34,11 +34,6 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
             </h1>
             <p class="page-sub">Manage your hierarchical organizational units and departments</p>
           </div>
-          <button *ngIf="isAdmin()" [disabled]="loading() || hasRoot()"
-                  (click)="onCreateRoot()" class="submit-btn">
-            <mat-icon class="btn-icon">add</mat-icon>
-            <span class="btn-text">Create Root Unit</span>
-          </button>
         </div>
       </div>
 
@@ -60,11 +55,7 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
               <mat-icon class="empty-icon">account_tree</mat-icon>
             </div>
             <p class="empty-title">No organization units yet</p>
-            <p class="empty-sub">Create a root unit to start building your hierarchy.</p>
-            <button *ngIf="isAdmin()" (click)="onCreateRoot()" class="submit-btn empty-btn">
-              <mat-icon class="btn-icon">add</mat-icon>
-              <span>Create Root Unit</span>
-            </button>
+            <p class="empty-sub">Organization units will appear here once they are created.</p>
           </div>
 
         </div>
@@ -154,7 +145,9 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
     .header-content {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
     }
 
     .header-text {
@@ -165,6 +158,7 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
     .page-title {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 10px;
       font-size: 22px;
       font-weight: 700;
@@ -185,52 +179,6 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
       color: #64748b;
       margin: 6px 0 0;
       line-height: 1.5;
-    }
-
-    /* ===== BUTTON STYLES ===== */
-    .submit-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      height: 40px;
-      padding: 0 18px;
-      border-radius: 10px;
-      border: none;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .submit-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-    }
-
-    .submit-btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .submit-btn:disabled {
-      background: #e2e8f0;
-      color: #94a3b8;
-      box-shadow: none;
-      cursor: not-allowed;
-    }
-
-    .btn-icon {
-      font-size: 18px !important;
-      width: 18px !important;
-      height: 18px !important;
-    }
-
-    .empty-btn {
-      margin-top: 20px;
     }
 
     /* ===== TREE CARD ===== */
@@ -512,9 +460,9 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
       }
 
       .header-content {
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
       }
 
       .page-title {
@@ -637,8 +585,6 @@ export class OrgUnitTreeComponent implements OnInit {
     const baseIndent = level * 24;
     return `${baseIndent}px`;
   }
-
-  onCreateRoot(): void { this.openFormDialog(); }
 
   onCreateChild(parent: OrganizationUnitTreeDto): void { this.openFormDialog(undefined, parent.id); }
 

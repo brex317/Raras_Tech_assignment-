@@ -46,19 +46,16 @@ import { AuthService } from '../../core/services/auth.service';
         <!-- Right side -->
         <div class="flex items-center gap-3" *ngIf="user()">
 
-          <!-- Role pill -->
-          <span class="role-pill">{{ user()?.role }}</span>
-
           <!-- User menu -->
           <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
             <div class="avatar">{{ userInitials() }}</div>
-            <span class="hidden sm:block text-sm font-medium text-slate-200">{{ user()?.fullName }}</span>
-            <mat-icon class="!text-slate-500 !text-[18px] !w-[18px] !h-[18px]">expand_more</mat-icon>
+            <span class="user-display-name">{{ user()?.role }}</span>
+            <mat-icon class="expand-icon">expand_more</mat-icon>
           </button>
 
           <mat-menu #userMenu="matMenu" xPosition="before">
             <div class="menu-user-header">
-              <p class="font-semibold text-sm text-slate-900">{{ user()?.fullName }}</p>
+              <p class="font-semibold text-sm text-slate-900">{{ user()?.role }}</p>
               <p class="text-xs text-slate-500 mt-0.5">{{ user()?.email }}</p>
             </div>
             <button mat-menu-item (click)="logout()" class="menu-logout-item">
@@ -121,43 +118,62 @@ import { AuthService } from '../../core/services/auth.service';
       box-shadow: 0 1px 3px rgb(0 0 0 / .25);
     }
 
-    /* ── Role pill ── */
-    .role-pill {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      padding: 3px 10px;
-      border-radius: 20px;
-      background: rgba(99,102,241,0.18);
-      color: #a5b4fc;
-      border: 1px solid rgba(99,102,241,0.28);
-      white-space: nowrap;
-    }
-
     /* ── User button ── */
     .user-btn {
       display: flex !important;
       align-items: center !important;
-      gap: 8px !important;
-      padding: 4px 10px !important;
-      border-radius: 10px !important;
-      transition: background 0.15s !important;
+      gap: 10px !important;
+      padding: 6px 12px 6px 8px !important;
+      border-radius: 12px !important;
+      transition: all 0.2s ease !important;
+      border: 1px solid transparent !important;
     }
-    .user-btn:hover { background: rgba(255,255,255,0.06) !important; }
+    
+    .user-btn:hover { 
+      background: rgba(255,255,255,0.08) !important; 
+      border-color: rgba(255,255,255,0.1) !important;
+    }
 
     /* ── Avatar ── */
     .avatar {
-      width: 30px;
-      height: 30px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: linear-gradient(135deg, #6366f1, #4f46e5);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* ── User display name ── */
+    .user-display-name {
+      display: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: #e2e8f0;
+      letter-spacing: 0.01em;
+      margin-right: 4px;
+    }
+
+    /* ── Expand icon ── */
+    .expand-icon {
+      color: #94a3b8 !important;
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+      transition: all 0.2s ease !important;
+      margin-left: auto;
+    }
+
+    .user-btn:hover .expand-icon {
+      color: #cbd5e1 !important;
+      transform: translateY(1px);
     }
 
     /* ── User menu ── */
@@ -225,6 +241,13 @@ import { AuthService } from '../../core/services/auth.service';
       border-top: 1px solid rgba(255,255,255,0.06);
       text-align: center;
     }
+
+    /* ── Responsive ── */
+    @media (min-width: 640px) {
+      .user-display-name {
+        display: block;
+      }
+    }
   `]
 })
 export class LayoutComponent {
@@ -233,9 +256,11 @@ export class LayoutComponent {
   readonly user = this.authService.currentUser;
 
   readonly userInitials = computed(() => {
-    const fullName = this.user()?.fullName;
-    if (!fullName) return '';
-    return fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    const role = this.user()?.role;
+    if (!role) return '';
+    
+    // Return first letter of role (A for Administrator, M for Manager, V for Viewer)
+    return role[0].toUpperCase();
   });
 
   logout(): void {
