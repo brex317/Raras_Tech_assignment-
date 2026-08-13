@@ -14,7 +14,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'assets',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
       },
       {
@@ -49,6 +49,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'assets'
+    redirectTo: 'dashboard'
   }
 ];

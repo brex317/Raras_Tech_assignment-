@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -94,16 +94,6 @@ import { AuthService } from '../../../core/services/auth.service';
               </button>
             </form>
 
-            <!-- Demo credentials -->
-            <div class="mt-5 pt-4 border-t border-slate-100">
-              <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Demo Credentials</p>
-              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-500">
-                <div>Admin: <code class="bg-slate-50 border border-slate-200 px-1 py-0.5 rounded text-indigo-600 font-mono">admin&#64;raras.com</code></div>
-                <div>Pass: <code class="bg-slate-50 border border-slate-200 px-1 py-0.5 rounded text-indigo-600 font-mono">Admin&#64;123</code></div>
-                <div>Manager: <code class="bg-slate-50 border border-slate-200 px-1 py-0.5 rounded text-indigo-600 font-mono">manager&#64;raras.com</code></div>
-                <div>Pass: <code class="bg-slate-50 border border-slate-200 px-1 py-0.5 rounded text-indigo-600 font-mono">Manager&#64;123</code></div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -233,7 +223,6 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly loginForm = this.fb.group({
@@ -257,8 +246,8 @@ export class LoginComponent {
     this.authService.login(credentials).subscribe({
       next: () => {
         this.loading.set(false);
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-        this.router.navigateByUrl(returnUrl);
+        // Always redirect to dashboard after successful login
+        this.router.navigate(['/dashboard']);
         this.snackBar.open('Logged in successfully.', 'Close', {
           duration: 3000,
           horizontalPosition: 'end',
