@@ -33,7 +33,7 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Account is disabled.");
         }
 
-        var token = _jwtTokenService.GenerateToken(user.Id, user.Email, user.Role.Name);
+       var token = _jwtTokenService.GenerateToken(user.Id, user.Email, user.Role.Name, user.OrganizationUnitId);
 
         return new LoginResponse
         {

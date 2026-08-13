@@ -16,13 +16,13 @@ public class JwtTokenService : IJwtTokenService
         _configuration = configuration;
     }
 
-    public string GenerateToken(Guid userId, string email, string role)
+    public string GenerateToken(Guid userId, string email, string role, Guid? organizationUnitId = null)
     {
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]
                 ?? throw new InvalidOperationException("JWT Secret not configured.")));
 
-        var claims = new[]
+        var claimsList = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Email, email),
@@ -30,12 +30,17 @@ public class JwtTokenService : IJwtTokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+        if (organizationUnitId.HasValue)
+        {
+            claimsList.Add(new Claim("OrganizationUnitId", organizationUnitId.Value.ToString()));
+        }
+
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["JwtSettings:Issuer"],
             audience: _configuration["JwtSettings:Audience"],
-            claims: claims,
+            claims: claimsList,
             expires: DateTime.UtcNow.AddHours(
                 double.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "8")),
             signingCredentials: credentials
