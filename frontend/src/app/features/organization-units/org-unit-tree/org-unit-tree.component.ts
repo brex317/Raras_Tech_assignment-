@@ -22,26 +22,31 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
     MatSnackBarModule
   ],
   template: `
-    <div class="space-y-5 animate-fade-in">
+    <div class="page-container">
 
       <!-- Page header -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 class="page-title">Organization Structure</h1>
-          <p class="page-sub">Manage your hierarchical organizational units and departments</p>
+      <div class="page-header">
+        <div class="header-content">
+          <div class="header-text">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">account_tree</mat-icon>
+              Organization Structure
+            </h1>
+            <p class="page-sub">Manage your hierarchical organizational units and departments</p>
+          </div>
+          <button *ngIf="isAdmin()" [disabled]="loading() || hasRoot()"
+                  (click)="onCreateRoot()" class="submit-btn">
+            <mat-icon class="btn-icon">add</mat-icon>
+            <span class="btn-text">Create Root Unit</span>
+          </button>
         </div>
-        <button *ngIf="isAdmin()" [disabled]="loading() || hasRoot()"
-                (click)="onCreateRoot()" class="submit-btn">
-          <mat-icon class="btn-icon">add</mat-icon>
-          Create Root Unit
-        </button>
       </div>
 
       <!-- Tree card -->
       <div class="tree-card">
-        <mat-progress-bar *ngIf="loading()" mode="query" class="absolute top-0 left-0 right-0 rounded-t-xl"></mat-progress-bar>
+        <mat-progress-bar *ngIf="loading()" mode="query" class="loading-bar"></mat-progress-bar>
 
-        <div class="p-5 md:p-6 space-y-0.5">
+        <div class="tree-content">
 
           <ng-container *ngIf="treeNodes().length > 0">
             <ng-container *ngFor="let node of treeNodes()">
@@ -51,12 +56,14 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
 
           <!-- Empty state -->
           <div *ngIf="treeNodes().length === 0 && !loading()" class="empty-state">
-            <mat-icon class="empty-icon">account_tree</mat-icon>
+            <div class="empty-icon-wrap">
+              <mat-icon class="empty-icon">account_tree</mat-icon>
+            </div>
             <p class="empty-title">No organization units yet</p>
             <p class="empty-sub">Create a root unit to start building your hierarchy.</p>
-            <button *ngIf="isAdmin()" (click)="onCreateRoot()" class="submit-btn mt-4">
+            <button *ngIf="isAdmin()" (click)="onCreateRoot()" class="submit-btn empty-btn">
               <mat-icon class="btn-icon">add</mat-icon>
-              Create Root Unit
+              <span>Create Root Unit</span>
             </button>
           </div>
 
@@ -66,46 +73,58 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
 
     <!-- Recursive node template -->
     <ng-template #nodeTemplate let-node>
-      <div>
-        <div class="node-row group" [style.padding-left.px]="20 + node.level * 22">
+      <div class="node-container">
+        <div class="node-row" [style.padding-left]="getNodePadding(node.level)">
 
           <!-- Expand toggle -->
           <button *ngIf="node.children?.length" (click)="toggleNode(node.id)"
-                  class="expand-btn" [class.expanded]="isExpanded(node.id)">
-            <mat-icon class="!text-[16px] !w-4 !h-4">chevron_right</mat-icon>
+                  class="expand-btn" [class.expanded]="isExpanded(node.id)"
+                  [attr.aria-label]="isExpanded(node.id) ? 'Collapse' : 'Expand'">
+            <mat-icon class="expand-icon">chevron_right</mat-icon>
           </button>
-          <div *ngIf="!node.children?.length" class="w-7"></div>
+          <div *ngIf="!node.children?.length" class="expand-spacer"></div>
 
           <!-- Icon -->
           <mat-icon class="node-icon" [class.root-icon]="node.level === 0">
             {{ node.level === 0 ? 'corporate_fare' : (node.children?.length ? 'folder' : 'insert_drive_file') }}
           </mat-icon>
 
-          <!-- Name + code -->
-          <div class="flex items-center gap-2 flex-1 min-w-0">
-            <span class="node-name">{{ node.name }}</span>
-            <span class="node-code">{{ node.code }}</span>
-            <span *ngIf="!node.isActive" class="inactive-badge">Inactive</span>
-          </div>
-
-          <!-- Right side -->
-          <div class="flex items-center gap-3 ml-auto shrink-0">
-            <span class="asset-count">
+          <!-- Name + code + badges -->
+          <div class="node-info">
+            <div class="node-main">
+              <span class="node-name">{{ node.name }}</span>
+              <span class="node-code">{{ node.code }}</span>
+              <span *ngIf="!node.isActive" class="inactive-badge">Inactive</span>
+            </div>
+            <span class="asset-count mobile-only">
+              <mat-icon class="count-icon">inventory_2</mat-icon>
               {{ node.assetCount }} {{ node.assetCount === 1 ? 'asset' : 'assets' }}
             </span>
-            <div *ngIf="isAdmin()" class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button mat-icon-button (click)="onCreateChild(node)" title="Add sub-unit" class="action-icon-btn add">
-                <mat-icon class="!text-[17px]">add_circle_outline</mat-icon>
+          </div>
+
+          <!-- Right side actions -->
+          <div class="node-actions">
+            <span class="asset-count desktop-only">
+              <mat-icon class="count-icon">inventory_2</mat-icon>
+              {{ node.assetCount }}
+            </span>
+            <div *ngIf="isAdmin()" class="action-buttons">
+              <button mat-icon-button (click)="onCreateChild(node)" 
+                      title="Add sub-unit" class="action-icon-btn add"
+                      [attr.aria-label]="'Add sub-unit to ' + node.name">
+                <mat-icon>add_circle_outline</mat-icon>
               </button>
-              <button mat-icon-button (click)="onEdit(node)" title="Edit" class="action-icon-btn edit">
-                <mat-icon class="!text-[17px]">edit</mat-icon>
+              <button mat-icon-button (click)="onEdit(node)" 
+                      title="Edit" class="action-icon-btn edit"
+                      [attr.aria-label]="'Edit ' + node.name">
+                <mat-icon>edit</mat-icon>
               </button>
             </div>
           </div>
         </div>
 
         <!-- Children -->
-        <div *ngIf="isExpanded(node.id) && node.children?.length">
+        <div *ngIf="isExpanded(node.id) && node.children?.length" class="node-children">
           <ng-container *ngFor="let child of node.children">
             <ng-container *ngTemplateOutlet="nodeTemplate; context: { $implicit: child }"></ng-container>
           </ng-container>
@@ -114,93 +133,465 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
     </ng-template>
   `,
   styles: [`
-    .page-title { font-size: 20px; font-weight: 700; color: #0f172a; }
-    .page-sub   { font-size: 13px; color: #64748b; margin-top: 2px; }
-
-    .submit-btn {
-      display: inline-flex; align-items: center; gap: 5px;
-      height: 36px; padding: 0 16px; border-radius: 8px; border: none;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      font-size: 13px; font-weight: 600; color: #fff; cursor: pointer;
-      box-shadow: 0 2px 8px rgb(99 102 241/.3);
-      transition: opacity 0.15s;
+    /* ===== PAGE CONTAINER ===== */
+    .page-container {
+      padding: 16px;
+      max-width: 1400px;
+      margin: 0 auto;
+      animation: fadeIn 0.3s ease-in;
     }
-    .submit-btn:hover:not(:disabled) { opacity: 0.9; }
-    .submit-btn:disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
-    .btn-icon { font-size: 17px !important; width: 17px !important; height: 17px !important; }
 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+      margin-bottom: 20px;
+    }
+
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .header-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .title-icon {
+      font-size: 26px !important;
+      width: 26px !important;
+      height: 26px !important;
+      color: #6366f1 !important;
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: #64748b;
+      margin: 6px 0 0;
+      line-height: 1.5;
+    }
+
+    /* ===== BUTTON STYLES ===== */
+    .submit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 40px;
+      padding: 0 18px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+
+    .submit-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+      background: #e2e8f0;
+      color: #94a3b8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .btn-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+    }
+
+    .empty-btn {
+      margin-top: 20px;
+    }
+
+    /* ===== TREE CARD ===== */
     .tree-card {
       position: relative;
       background: #fff;
-      border-radius: 12px;
+      border-radius: 16px;
       border: 1px solid #e9edf2;
-      min-height: 300px;
+      min-height: 350px;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgb(0 0 0/.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: box-shadow 0.2s ease;
     }
 
-    /* Node row */
+    .tree-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .loading-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      border-radius: 16px 16px 0 0;
+      z-index: 10;
+    }
+
+    .tree-content {
+      padding: 20px 16px;
+    }
+
+    /* ===== NODE STYLES ===== */
+    .node-container {
+      margin-bottom: 2px;
+    }
+
     .node-row {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding-top: 7px;
-      padding-bottom: 7px;
-      padding-right: 12px;
-      border-radius: 9px;
-      transition: background 0.12s;
+      padding: 10px 12px 10px 16px;
+      border-radius: 10px;
+      transition: all 0.15s ease;
       cursor: default;
+      position: relative;
     }
-    .node-row:hover { background: #f8fafc; }
+
+    .node-row:hover {
+      background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    .node-row:hover .action-buttons {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     /* Expand button */
     .expand-btn {
-      display: flex; align-items: center; justify-content: center;
-      width: 26px; height: 26px; border-radius: 6px;
-      border: none; background: transparent; cursor: pointer;
-      color: #64748b; flex-shrink: 0;
-      transition: background 0.12s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #64748b;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      padding: 0;
     }
-    .expand-btn:hover { background: #f1f5f9; }
-    .expand-btn.expanded mat-icon { transform: rotate(90deg); }
-    .expand-btn mat-icon { transition: transform 0.2s; }
+
+    .expand-btn:hover {
+      background: #e0e7ff;
+      color: #4f46e5;
+    }
+
+    .expand-btn.expanded .expand-icon {
+      transform: rotate(90deg);
+    }
+
+    .expand-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+      transition: transform 0.25s ease;
+    }
+
+    .expand-spacer {
+      width: 28px;
+      flex-shrink: 0;
+    }
 
     /* Node icon */
     .node-icon {
-      font-size: 18px !important; width: 18px !important; height: 18px !important;
-      color: #94a3b8; flex-shrink: 0;
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+      color: #94a3b8;
+      flex-shrink: 0;
     }
-    .root-icon { color: #6366f1 !important; }
 
-    /* Node text */
-    .node-name { font-size: 13.5px; font-weight: 600; color: #1e293b; }
+    .root-icon {
+      color: #6366f1 !important;
+      font-size: 22px !important;
+      width: 22px !important;
+      height: 22px !important;
+    }
+
+    /* Node info section */
+    .node-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .node-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .node-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.4;
+    }
+
     .node-code {
-      font-size: 11px; font-weight: 600; padding: 2px 7px;
-      border-radius: 5px; background: #f1f5f9; color: #64748b;
-      font-family: monospace; letter-spacing: 0.03em; flex-shrink: 0;
-    }
-    .inactive-badge {
-      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
-      background: #fff1f2; color: #be123c; letter-spacing: 0.04em;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
     }
 
-    /* Asset count */
+    .inactive-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #fff1f2;
+      color: #be123c;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Node actions */
+    .node-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
     .asset-count {
-      font-size: 11.5px; font-weight: 600; padding: 3px 9px;
-      border-radius: 20px; background: #eef2ff; color: #4f46e5;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: #eef2ff;
+      color: #4f46e5;
       white-space: nowrap;
     }
 
-    /* Action icon buttons */
-    .action-icon-btn { transition: none !important; }
-    .action-icon-btn.add { color: #6366f1 !important; }
-    .action-icon-btn.edit { color: #06b6d4 !important; }
+    .count-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
 
-    /* Empty state */
-    .empty-state { text-align: center; padding: 56px 24px; }
-    .empty-icon  { font-size: 44px !important; width: 44px !important; height: 44px !important; color: #cbd5e1 !important; }
-    .empty-title { font-size: 14px; font-weight: 600; color: #475569; margin: 12px 0 4px; }
-    .empty-sub   { font-size: 12.5px; color: #94a3b8; }
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .action-icon-btn {
+      transition: all 0.2s ease !important;
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    .action-icon-btn mat-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+    }
+
+    .action-icon-btn.add {
+      color: #6366f1 !important;
+    }
+
+    .action-icon-btn.add:hover {
+      background: #eef2ff !important;
+    }
+
+    .action-icon-btn.edit {
+      color: #06b6d4 !important;
+    }
+
+    .action-icon-btn.edit:hover {
+      background: #ecfeff !important;
+    }
+
+    .node-children {
+      margin-top: 2px;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+    }
+
+    .empty-icon-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+      margin-bottom: 16px;
+    }
+
+    .empty-icon {
+      font-size: 40px !important;
+      width: 40px !important;
+      height: 40px !important;
+      color: #94a3b8 !important;
+    }
+
+    .empty-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #334155;
+      margin: 0 0 8px;
+    }
+
+    .empty-sub {
+      font-size: 13px;
+      color: #94a3b8;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ===== RESPONSIVE UTILITIES ===== */
+    .mobile-only {
+      display: flex;
+    }
+
+    .desktop-only {
+      display: none;
+    }
+
+    /* ===== MEDIA QUERIES ===== */
+    
+    /* Tablets and up (640px+) */
+    @media (min-width: 640px) {
+      .page-container {
+        padding: 24px;
+      }
+
+      .header-content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .page-title {
+        font-size: 24px;
+      }
+
+      .title-icon {
+        font-size: 28px !important;
+        width: 28px !important;
+        height: 28px !important;
+      }
+
+      .page-sub {
+        font-size: 14px;
+      }
+
+      .tree-content {
+        padding: 24px 20px;
+      }
+
+      .node-row {
+        padding: 12px 16px 12px 20px;
+      }
+
+      .mobile-only {
+        display: none;
+      }
+
+      .desktop-only {
+        display: inline-flex;
+      }
+    }
+
+    /* Desktop (768px+) */
+    @media (min-width: 768px) {
+      .page-container {
+        padding: 32px;
+      }
+
+      .page-header {
+        margin-bottom: 24px;
+      }
+
+      .tree-content {
+        padding: 28px 24px;
+      }
+
+      .node-name {
+        font-size: 14.5px;
+      }
+
+      .empty-state {
+        padding: 80px 32px;
+      }
+    }
+
+    /* Large desktop (1024px+) */
+    @media (min-width: 1024px) {
+      .page-container {
+        padding: 40px;
+      }
+
+      .page-title {
+        font-size: 26px;
+      }
+
+      .tree-content {
+        padding: 32px 28px;
+      }
+    }
+
+    /* Extra large screens (1280px+) */
+    @media (min-width: 1280px) {
+      .tree-content {
+        padding: 36px 32px;
+      }
+    }
   `]
 })
 export class OrgUnitTreeComponent implements OnInit {
@@ -242,6 +633,11 @@ export class OrgUnitTreeComponent implements OnInit {
     });
   }
 
+  getNodePadding(level: number): string {
+    const baseIndent = level * 24;
+    return `${baseIndent}px`;
+  }
+
   onCreateRoot(): void { this.openFormDialog(); }
 
   onCreateChild(parent: OrganizationUnitTreeDto): void { this.openFormDialog(undefined, parent.id); }
@@ -255,7 +651,11 @@ export class OrgUnitTreeComponent implements OnInit {
   }
 
   private openFormDialog(unit?: OrganizationUnitDto, parentId?: string): void {
-    const dialogRef = this.dialog.open(OrgUnitFormComponent, { width: '440px', data: { unit } });
+    const dialogRef = this.dialog.open(OrgUnitFormComponent, { 
+      width: '90vw',
+      maxWidth: '500px',
+      data: { unit } 
+    });
     if (!unit && parentId) dialogRef.componentInstance.orgUnitForm.patchValue({ parentId });
 
     dialogRef.afterClosed().subscribe(formValue => {
