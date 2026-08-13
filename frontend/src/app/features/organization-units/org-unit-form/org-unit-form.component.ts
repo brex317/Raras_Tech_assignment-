@@ -1,11 +1,11 @@
 import { Component, Inject, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { OrgUnitSelectorComponent } from '../../../shared/components/org-unit-selector/org-unit-selector.component';
 import { OrganizationUnitDto } from '../../../core/models/models';
@@ -24,70 +24,131 @@ export interface OrgUnitDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSelectModule,
+    MatIconModule,
     MatSlideToggleModule,
     OrgUnitSelectorComponent
   ],
   template: `
-    <h2 mat-dialog-title class="!font-semibold !text-slate-900">
-      {{ data.unit ? 'Edit Organization Unit' : 'Create Organization Unit' }}
-    </h2>
-    
-    <mat-dialog-content class="space-y-4">
-      <form [formGroup]="orgUnitForm" class="space-y-4 pt-2">
-        <!-- Name -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Unit Name</mat-label>
-          <input matInput formControlName="name" placeholder="e.g. Sales Department" required>
-          <mat-error *ngIf="orgUnitForm.get('name')?.hasError('required')">Name is required</mat-error>
-          <mat-error *ngIf="orgUnitForm.get('name')?.hasError('maxlength')">Name must not exceed 100 characters</mat-error>
-        </mat-form-field>
+    <div class="dialog-wrap">
 
-        <!-- Code -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Code (Unique identifier)</mat-label>
-          <input matInput formControlName="code" placeholder="e.g. SLS-DEPT" required>
-          <mat-error *ngIf="orgUnitForm.get('code')?.hasError('required')">Code is required</mat-error>
-          <mat-error *ngIf="orgUnitForm.get('code')?.hasError('maxlength')">Code must not exceed 20 characters</mat-error>
-          <mat-error *ngIf="orgUnitForm.get('code')?.hasError('pattern')">
-            Code can only contain letters, numbers, and hyphens
-          </mat-error>
-        </mat-form-field>
-
-        <!-- Parent Unit Selector -->
-        <app-org-unit-selector 
-          formControlName="parentId"
-          label="Parent Unit"
-          [showNone]="true">
-        </app-org-unit-selector>
-
-        <!-- Is Active (Edit Mode Only) -->
-        <div *ngIf="data.unit" class="py-2">
-          <mat-slide-toggle formControlName="isActive" color="primary">
-            Active Status
-          </mat-slide-toggle>
-          <p class="text-xs text-slate-400 mt-1 font-sans">
-            Inactivating a unit blocks assignments to it.
-          </p>
+      <!-- Header -->
+      <div class="dialog-header">
+        <div class="dialog-icon-wrap">
+          <mat-icon class="dialog-icon">account_tree</mat-icon>
         </div>
-      </form>
-    </mat-dialog-content>
+        <div>
+          <h2 class="dialog-title">{{ data.unit ? 'Edit Organization Unit' : 'New Organization Unit' }}</h2>
+          <p class="dialog-sub">{{ data.unit ? 'Update unit details' : 'Add a new unit to the hierarchy' }}</p>
+        </div>
+      </div>
 
-    <mat-dialog-actions align="end" class="!pb-4 !px-6">
-      <button mat-button (click)="onCancel()">Cancel</button>
-      <button mat-raised-button color="primary" [disabled]="orgUnitForm.invalid" (click)="onSave()" class="!rounded-lg shadow">
-        Save
-      </button>
-    </mat-dialog-actions>
-  `
+      <!-- Body -->
+      <div class="dialog-body">
+        <form [formGroup]="orgUnitForm" class="space-y-4">
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Unit Name</mat-label>
+            <input matInput formControlName="name" placeholder="e.g. Sales Department" required>
+            <mat-error *ngIf="orgUnitForm.get('name')?.hasError('required')">Name is required</mat-error>
+            <mat-error *ngIf="orgUnitForm.get('name')?.hasError('maxlength')">Max 100 characters</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Code</mat-label>
+            <input matInput formControlName="code" placeholder="e.g. SLS-DEPT" required>
+            <mat-hint>Letters, numbers, and hyphens only</mat-hint>
+            <mat-error *ngIf="orgUnitForm.get('code')?.hasError('required')">Code is required</mat-error>
+            <mat-error *ngIf="orgUnitForm.get('code')?.hasError('maxlength')">Max 20 characters</mat-error>
+            <mat-error *ngIf="orgUnitForm.get('code')?.hasError('pattern')">Invalid format</mat-error>
+          </mat-form-field>
+
+          <app-org-unit-selector
+            formControlName="parentId"
+            label="Parent Unit (optional)"
+            [showNone]="true">
+          </app-org-unit-selector>
+
+          <div *ngIf="data.unit" class="toggle-row">
+            <div>
+              <p class="toggle-label">Active Status</p>
+              <p class="toggle-sub">Inactive units cannot receive asset assignments</p>
+            </div>
+            <mat-slide-toggle formControlName="isActive" color="primary"></mat-slide-toggle>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="dialog-footer">
+        <button class="cancel-btn" (click)="onCancel()">Cancel</button>
+        <button class="submit-btn" [disabled]="orgUnitForm.invalid" (click)="onSave()">
+          {{ data.unit ? 'Save Changes' : 'Create Unit' }}
+        </button>
+      </div>
+
+    </div>
+  `,
+  styles: [`
+    .dialog-wrap { display: flex; flex-direction: column; }
+
+    /* Header */
+    .dialog-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 20px 24px 0;
+    }
+    .dialog-icon-wrap {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: #eef2ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .dialog-icon { color: #6366f1 !important; font-size: 20px !important; width: 20px !important; height: 20px !important; }
+    .dialog-title { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
+    .dialog-sub   { font-size: 12px; color: #64748b; margin: 2px 0 0; }
+
+    /* Body */
+    .dialog-body { padding: 20px 24px; }
+
+    /* Toggle row */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid #f1f5f9;
+    }
+    .toggle-label { font-size: 13.5px; font-weight: 500; color: #334155; margin: 0; }
+    .toggle-sub   { font-size: 11.5px; color: #94a3b8; margin: 2px 0 0; }
+
+    /* Footer */
+    .dialog-footer {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .cancel-btn {
+      height: 36px; padding: 0 16px; border-radius: 8px;
+      border: 1px solid #e2e8f0; background: #fff;
+      font-size: 13px; font-weight: 500; color: #64748b;
+      cursor: pointer; transition: border-color 0.15s;
+    }
+    .cancel-btn:hover { border-color: #94a3b8; color: #334155; }
+
+    .submit-btn {
+      height: 36px; padding: 0 20px; border-radius: 8px; border: none;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      font-size: 13px; font-weight: 600; color: #fff;
+      cursor: pointer; box-shadow: 0 2px 8px rgb(99 102 241/.3);
+      transition: opacity 0.15s;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: 0.9; }
+    .submit-btn:disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
+  `]
 })
 export class OrgUnitFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<OrgUnitFormComponent>);
 
   readonly orgUnitForm = this.fb.group({
-    name: ['', [Validators.required, Validators.maxLength(100)]],
-    code: ['', [Validators.required, Validators.maxLength(20), Validators.pattern('^[A-Za-z0-9-]+$')]],
+    name:     ['', [Validators.required, Validators.maxLength(100)]],
+    code:     ['', [Validators.required, Validators.maxLength(20), Validators.pattern('^[A-Za-z0-9-]+$')]],
     parentId: [null as string | null],
     isActive: [true]
   });
@@ -97,17 +158,15 @@ export class OrgUnitFormComponent implements OnInit {
   ngOnInit(): void {
     if (this.data.unit) {
       this.orgUnitForm.patchValue({
-        name: this.data.unit.name,
-        code: this.data.unit.code,
+        name:     this.data.unit.name,
+        code:     this.data.unit.code,
         parentId: this.data.unit.parentId || null,
         isActive: this.data.unit.isActive
       });
     }
   }
 
-  onCancel(): void {
-    this.dialogRef.close();
-  }
+  onCancel(): void { this.dialogRef.close(); }
 
   onSave(): void {
     if (this.orgUnitForm.invalid) return;
