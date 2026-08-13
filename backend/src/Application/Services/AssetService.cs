@@ -108,21 +108,20 @@ public class AssetService : IAssetService
         };
     }
 
-    public async Task<AssetDto> CreateAssetAsync(CreateAssetRequest request, Guid userId)
+    public async Task<AssetDto> CreateAssetAsync(CreateAssetRequest request, Guid userId, string userRole, Guid? userOrgUnitId)
     {
-        // Validate org unit exists and is active
         var orgUnit = await _orgUnitRepository.GetByIdAsync(request.OrganizationUnitId);
         if (orgUnit == null)
             throw new ArgumentException("Organization unit not found.");
         if (!orgUnit.IsActive)
             throw new ArgumentException("Cannot assign asset to an inactive organization unit.");
 
-        // Validate category exists
+        await EnsureManagerCanAccessUnitAsync(userRole, userOrgUnitId, orgUnit);
+
         var category = await _categoryRepository.GetByIdAsync(request.CategoryId);
         if (category == null)
             throw new ArgumentException("Asset category not found.");
 
-        // Generate asset tag
         var count = await _assetRepository.CountAsync();
         var assetTag = $"AST-{(count + 1):D5}";
 
@@ -144,7 +143,6 @@ public class AssetService : IAssetService
 
         await _assetRepository.AddAsync(asset);
 
-        // Add creation history
         asset.History.Add(new AssetHistory
         {
             Id = Guid.NewGuid(),
@@ -162,25 +160,27 @@ public class AssetService : IAssetService
         return MapToDto(asset);
     }
 
-    public async Task<AssetDto> UpdateAssetAsync(Guid id, UpdateAssetRequest request, Guid userId)
+    public async Task<AssetDto> UpdateAssetAsync(Guid id, UpdateAssetRequest request, Guid userId, string userRole, Guid? userOrgUnitId)
     {
         var asset = await _assetRepository.GetByIdAsync(id);
         if (asset == null)
             throw new KeyNotFoundException($"Asset with ID {id} not found.");
 
-        // Validate org unit
+        if (asset.OrganizationUnit != null)
+            await EnsureManagerCanAccessUnitAsync(userRole, userOrgUnitId, asset.OrganizationUnit);
+
         var orgUnit = await _orgUnitRepository.GetByIdAsync(request.OrganizationUnitId);
         if (orgUnit == null)
             throw new ArgumentException("Organization unit not found.");
         if (!orgUnit.IsActive)
             throw new ArgumentException("Cannot assign asset to an inactive organization unit.");
 
-        // Validate category
+        await EnsureManagerCanAccessUnitAsync(userRole, userOrgUnitId, orgUnit);
+
         var category = await _categoryRepository.GetByIdAsync(request.CategoryId);
         if (category == null)
             throw new ArgumentException("Asset category not found.");
 
-        // Track changes for history
         var changes = new List<string>();
 
         if (asset.Name != request.Name)
@@ -212,7 +212,6 @@ public class AssetService : IAssetService
             });
         }
 
-        // Apply updates
         asset.Name = request.Name;
         asset.Description = request.Description;
         asset.Status = request.Status;
@@ -245,17 +244,22 @@ public class AssetService : IAssetService
         return MapToDto(asset);
     }
 
-    public async Task<AssetDto> AssignAssetAsync(Guid id, AssignAssetRequest request, Guid userId)
+    public async Task<AssetDto> AssignAssetAsync(Guid id, AssignAssetRequest request, Guid userId, string userRole, Guid? userOrgUnitId)
     {
         var asset = await _assetRepository.GetByIdAsync(id);
         if (asset == null)
             throw new KeyNotFoundException($"Asset with ID {id} not found.");
+
+        if (asset.OrganizationUnit != null)
+            await EnsureManagerCanAccessUnitAsync(userRole, userOrgUnitId, asset.OrganizationUnit);
 
         var orgUnit = await _orgUnitRepository.GetByIdAsync(request.OrganizationUnitId);
         if (orgUnit == null)
             throw new ArgumentException("Organization unit not found.");
         if (!orgUnit.IsActive)
             throw new ArgumentException("Cannot assign asset to an inactive organization unit.");
+
+        await EnsureManagerCanAccessUnitAsync(userRole, userOrgUnitId, orgUnit);
 
         var oldOrgUnitName = asset.OrganizationUnit?.Name ?? "Unknown";
 
@@ -278,6 +282,29 @@ public class AssetService : IAssetService
 
         asset.OrganizationUnit = orgUnit;
         return MapToDto(asset);
+    }
+
+    /// <summary>
+    /// Managers may only manage assets within their own organization unit or its descendants.
+    /// Administrators are unrestricted. Uses the same materialized-path pattern as OrganizationUnitService.
+    /// </summary>
+    private async Task EnsureManagerCanAccessUnitAsync(string userRole, Guid? userOrgUnitId, OrganizationUnit targetUnit)
+    {
+        if (!string.Equals(userRole, "Manager", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        if (!userOrgUnitId.HasValue)
+            throw new UnauthorizedAccessException("Manager account has no assigned organization unit.");
+
+        var managerUnit = await _orgUnitRepository.GetByIdAsync(userOrgUnitId.Value);
+        if (managerUnit == null)
+            throw new UnauthorizedAccessException("Manager's organization unit could not be found.");
+
+        var isSameOrDescendant = targetUnit.Id == managerUnit.Id
+            || targetUnit.Path.StartsWith(managerUnit.Path.TrimEnd('/') + "/", StringComparison.Ordinal);
+
+        if (!isSameOrDescendant)
+            throw new UnauthorizedAccessException("Managers can only manage assets within their own organization unit or its sub-units.");
     }
 
     private static AssetDto MapToDto(Asset asset)

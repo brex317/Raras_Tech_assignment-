@@ -42,7 +42,9 @@ public class AssetsController : ControllerBase
     public async Task<IActionResult> CreateAsset([FromBody] CreateAssetRequest request)
     {
         var userId = GetUserId();
-        var result = await _assetService.CreateAssetAsync(request, userId);
+        var userRole = GetUserRole();
+        var userOrgUnitId = GetUserOrgUnitId();
+        var result = await _assetService.CreateAssetAsync(request, userId, userRole, userOrgUnitId);
         return CreatedAtAction(nameof(GetAssetById), new { id = result.Id }, result);
     }
 
@@ -51,7 +53,9 @@ public class AssetsController : ControllerBase
     public async Task<IActionResult> UpdateAsset(Guid id, [FromBody] UpdateAssetRequest request)
     {
         var userId = GetUserId();
-        var result = await _assetService.UpdateAssetAsync(id, request, userId);
+        var userRole = GetUserRole();
+        var userOrgUnitId = GetUserOrgUnitId();
+        var result = await _assetService.UpdateAssetAsync(id, request, userId, userRole, userOrgUnitId);
         return Ok(result);
     }
 
@@ -60,7 +64,9 @@ public class AssetsController : ControllerBase
     public async Task<IActionResult> AssignAsset(Guid id, [FromBody] AssignAssetRequest request)
     {
         var userId = GetUserId();
-        var result = await _assetService.AssignAssetAsync(id, request, userId);
+        var userRole = GetUserRole();
+        var userOrgUnitId = GetUserOrgUnitId();
+        var result = await _assetService.AssignAssetAsync(id, request, userId, userRole, userOrgUnitId);
         return Ok(result);
     }
 
@@ -72,5 +78,20 @@ public class AssetsController : ControllerBase
             throw new UnauthorizedAccessException("User context is missing or invalid.");
         }
         return userId;
+    }
+
+    private string GetUserRole()
+    {
+        return User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+    }
+
+    private Guid? GetUserOrgUnitId()
+    {
+        var orgUnitIdClaim = User.FindFirst("OrganizationUnitId")?.Value;
+        if (string.IsNullOrEmpty(orgUnitIdClaim) || !Guid.TryParse(orgUnitIdClaim, out var orgUnitId))
+        {
+            return null;
+        }
+        return orgUnitId;
     }
 }
