@@ -1,25 +1,35 @@
 @import 'tailwindcss';
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
 
-/* Core design variables and theme styling */
+/* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
-  --font-family-title: 'Outfit', sans-serif;
-  --font-family-body: 'Plus Jakarta Sans', sans-serif;
-  
-  /* RARAS Technologies Brand Color Palette */
-  --color-primary-50: #ecfeff;
-  --color-primary-100: #cffafe;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-accent-500: #10b981;
-  --color-neutral-900: #0f172a;
+  --font-title:  'Outfit', sans-serif;
+  --font-body:   'Plus Jakarta Sans', sans-serif;
+
+  --clr-bg:        #f5f7fa;
+  --clr-surface:   #ffffff;
+  --clr-border:    #e9edf2;
+  --clr-text:      #0f172a;
+  --clr-muted:     #64748b;
+
+  --clr-primary:   #6366f1;
+  --clr-primary-d: #4f46e5;
+  --clr-accent:    #06b6d4;
+  --clr-danger:    #f43f5e;
+
+  --radius-card:   14px;
+  --radius-btn:    8px;
+  --shadow-card:   0 1px 3px 0 rgb(0 0 0 / .06), 0 1px 2px -1px rgb(0 0 0 / .06);
+  --shadow-md:     0 4px 12px -2px rgb(0 0 0 / .08);
 }
 
+/* ─── Base ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
-  font-family: var(--font-family-body);
-  color: var(--color-neutral-900);
-  background-color: #f8fafc;
+  font-family: var(--font-body);
+  color: var(--clr-text);
+  background: var(--clr-bg);
   margin: 0;
   height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -27,56 +37,270 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-family-title);
+  font-family: var(--font-title);
   font-weight: 600;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
-/* Material component visual adjustments for premium look */
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ─── Animation ──────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Material Card ──────────────────────────────────────────── */
 .mat-mdc-card {
-  border-radius: 16px !important;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05) !important;
-  border: 1px solid #f1f5f9 !important;
-  background: white !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-card) !important;
+  border: 1px solid var(--clr-border) !important;
+  background: var(--clr-surface) !important;
 }
 
-.mat-mdc-button, .mat-mdc-raised-button, .mat-mdc-unelevated-button {
-  border-radius: 8px !important;
-  font-family: var(--font-family-title) !important;
+/* ─── Material Buttons ───────────────────────────────────────── */
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button {
+  border-radius: var(--radius-btn) !important;
+  font-family: var(--font-title) !important;
   font-weight: 500 !important;
   letter-spacing: 0.01em !important;
+  transition: opacity 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-.mat-mdc-form-field {
-  width: 100%;
+/* ─── Material Form Fields ───────────────────────────────────── */
+.mat-mdc-form-field { width: 100%; }
+
+/* Tighter infix padding — flex so input is vertically centered */
+.mat-mdc-form-field .mat-mdc-form-field-infix {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
-.mat-mdc-dialog-container {
-  border-radius: 20px !important;
+/* Wrapper: right padding stays; left is handled per-case below */
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  padding-left: 14px !important;
+  padding-right: 14px !important;
 }
 
-/* Customized scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+/* Fields WITH a prefix icon: zero the wrapper left padding —
+   the icon-prefix container provides its own left gap */
+.mat-mdc-form-field:has(.mat-mdc-form-field-icon-prefix) .mat-mdc-text-field-wrapper {
+  padding-left: 0 !important;
 }
 
-/* Premium Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ── Outline segments — proper rounded rectangle ── */
+
+/* Leading: fixed width = border-radius so the left arc is fully drawn.
+   Border-right is hidden to avoid a double line where it meets the notch. */
+.mat-mdc-form-field .mdc-notched-outline__leading {
+  width: 8px !important;
+  min-width: 8px !important;
+  border-radius: 8px 0 0 8px !important;
+  border-right: none !important;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Notch: sits in the middle, holds the floating label cutout.
+   Remove left border to avoid doubling with the leading's right edge. */
+.mat-mdc-form-field .mdc-notched-outline__notch {
+  border-left: none !important;
+  padding: 0 4px !important;
+}
+
+/* Trailing: right cap of the border */
+.mat-mdc-form-field .mdc-notched-outline__trailing {
+  border-radius: 0 8px 8px 0 !important;
+  flex: 1 !important;
+  border-left: none !important;
+}
+
+/* Floating label: offset it by leading width so it sits over the notch correctly */
+.mat-mdc-form-field .mdc-floating-label {
+  left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* ── Vertically center the label/placeholder inside the field ──
+   MDC anchors the label top relative to the infix top, which breaks
+   when infix padding is reduced. Force true vertical centering. */
+.mat-mdc-form-field .mdc-floating-label:not(.mdc-floating-label--float-above) {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Float-above: label animates up into the notch when focused/filled.
+   Use the standard MDC values — scale 0.75, shift up ~106% of label height. */
+.mat-mdc-form-field .mdc-floating-label--float-above {
+  top: 0 !important;
+  transform: translateY(-106%) scale(0.75) !important;
+  transform-origin: left top !important;
+}
+
+/* Prefix icon: left gap so it doesn't touch the border, right gap so
+   the placeholder/input text starts cleanly after the icon */
+.mat-mdc-form-field .mat-mdc-form-field-icon-prefix {
+  padding-left: 12px !important;
+  padding-right: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  color: #94a3b8 !important;
+}
+
+/* Fields WITH a prefix icon: label must start after the icon, not at left:0 */
+.mat-mdc-form-field:has(.mat-mdc-form-field-icon-prefix) .mdc-floating-label {
+  left: 0 !important;        /* icon-prefix width is outside the infix, so 0 is correct */
+  padding-left: 0 !important;
+}
+
+/* Outline border colors — default / hover / focus */
+.mat-mdc-form-field .mdc-notched-outline__leading,
+.mat-mdc-form-field .mdc-notched-outline__notch,
+.mat-mdc-form-field .mdc-notched-outline__trailing {
+  border-color: var(--clr-border) !important;
+  border-width: 1.5px !important;
+}
+.mat-mdc-form-field:hover .mdc-notched-outline__leading,
+.mat-mdc-form-field:hover .mdc-notched-outline__notch,
+.mat-mdc-form-field:hover .mdc-notched-outline__trailing {
+  border-color: #94a3b8 !important;
+}
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--clr-primary) !important;
+  border-width: 2px !important;
+}
+
+/* Focus glow */
+.mat-mdc-form-field.mat-focused .mdc-notched-outline {
+  filter: drop-shadow(0 0 3px rgba(99, 102, 241, 0.15));
+}
+
+/* Input text & placeholder */
+.mat-mdc-form-field input.mat-mdc-input-element,
+.mat-mdc-form-field textarea.mat-mdc-input-element {
+  font-size: 13.5px !important;
+  color: #1e293b !important;
+}
+.mat-mdc-form-field input.mat-mdc-input-element::placeholder,
+.mat-mdc-form-field textarea.mat-mdc-input-element::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Floating label color & size */
+.mat-mdc-form-field .mdc-floating-label {
+  font-size: 13.5px !important;
+  color: #64748b !important;
+}
+
+/* Error text */
+.mat-mdc-form-field .mat-mdc-form-field-error {
+  font-size: 11px !important;
+}
+
+/* ─── Material Table ─────────────────────────────────────────── */
+.mat-mdc-table { background: transparent !important; }
+
+.mat-mdc-header-row {
+  background: #f8fafc !important;
+  border-bottom: 1px solid var(--clr-border) !important;
+}
+
+.mat-mdc-header-cell {
+  font-family: var(--font-title) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  color: var(--clr-muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: none !important;
+}
+
+.mat-mdc-row {
+  border-bottom: 1px solid #f1f5f9 !important;
+  transition: background 0.12s ease;
+}
+.mat-mdc-row:hover { background: #f8fafc !important; }
+.mat-mdc-row:last-child { border-bottom: none !important; }
+
+.mat-mdc-cell {
+  font-size: 13.5px !important;
+  color: #334155 !important;
+  border-bottom: none !important;
+}
+
+/* ─── Material Tabs ──────────────────────────────────────────── */
+.mat-mdc-tab-header {
+  background: #fafafa !important;
+  border-bottom: 1px solid var(--clr-border) !important;
+}
+.mat-mdc-tab-label-container { padding: 0 4px !important; }
+.mat-mdc-tab .mdc-tab__text-label {
+  font-family: var(--font-title) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--clr-muted) !important;
+}
+.mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+  color: var(--clr-primary) !important;
+  font-weight: 600 !important;
+}
+.mat-mdc-tab-indicator .mdc-tab-indicator__content--underline {
+  border-color: var(--clr-primary) !important;
+}
+
+/* ─── Material Paginator ─────────────────────────────────────── */
+.mat-mdc-paginator {
+  background: #fafafa !important;
+  border-top: 1px solid var(--clr-border) !important;
+  font-family: var(--font-body) !important;
+  font-size: 12.5px !important;
+  color: var(--clr-muted) !important;
+}
+
+/* ─── Material Dialog ────────────────────────────────────────── */
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px -10px rgb(0 0 0 / .18) !important;
+}
+
+/* ─── Material Snackbar ──────────────────────────────────────── */
+.error-snackbar .mdc-snackbar__surface {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+}
+
+/* ─── Material Menu ──────────────────────────────────────────── */
+.mat-mdc-menu-panel {
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-md) !important;
+  border: 1px solid var(--clr-border) !important;
+}
+
+/* ─── Material Progress Bar ──────────────────────────────────── */
+.mat-mdc-progress-bar { height: 3px !important; }
+.mat-mdc-progress-bar .mdc-linear-progress__buffer-bar {
+  background: transparent !important;
+}
+
+/* ─── Chip overrides ─────────────────────────────────────────── */
+.mat-mdc-chip { border-radius: 6px !important; font-size: 11.5px !important; }
+
+/* ─── Slide toggle ───────────────────────────────────────────── */
+.mat-mdc-slide-toggle .mdc-form-field {
+  font-family: var(--font-body) !important;
+  font-size: 13.5px !important;
 }
