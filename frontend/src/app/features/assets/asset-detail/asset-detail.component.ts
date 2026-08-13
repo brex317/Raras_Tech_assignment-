@@ -1,7 +1,6 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,7 +26,6 @@ import { FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    MatCardModule,
     MatTabsModule,
     MatButtonModule,
     MatIconModule,
@@ -41,357 +39,470 @@ import { FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
     MatTooltipModule
   ],
   template: `
-    <div class="space-y-6 animate-fade-in" *ngIf="asset()">
-      
-      <!-- Detail Header -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div class="space-y-1">
-          <div class="flex items-center space-x-2">
-            <span class="text-xs font-bold font-sans uppercase tracking-widest px-2.5 py-0.5 bg-cyan-50 text-cyan-700 rounded-md border border-cyan-200">
-              {{ asset()?.assetTag }}
+    <div class="space-y-4 animate-fade-in" *ngIf="asset()">
+
+      <!-- ── Hero header ── -->
+      <div class="hero-header">
+        <div class="hero-left">
+          <div class="flex items-center gap-1.5 mb-3">
+            <a routerLink="/assets" class="bc-link">Assets</a>
+            <mat-icon class="bc-sep">chevron_right</mat-icon>
+            <span class="bc-current truncate max-w-[200px]">{{ asset()?.name }}</span>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <h1 class="hero-title">{{ asset()?.name }}</h1>
+            <span class="status-badge" [ngClass]="getStatusClass(asset()!.status)">{{ formatStatus(asset()!.status) }}</span>
+          </div>
+          <div class="flex items-center gap-4 mt-2 flex-wrap">
+            <span class="hero-meta">
+              <mat-icon class="hero-meta-icon">label_outline</mat-icon>
+              <span class="tag-badge-hero">{{ asset()?.assetTag }}</span>
             </span>
-            <span class="px-2 py-0.5 text-xs font-bold rounded-full" [ngClass]="getStatusClass(asset()!.status)">
-              {{ formatStatus(asset()!.status) }}
+            <span class="hero-meta">
+              <mat-icon class="hero-meta-icon">business</mat-icon>
+              {{ asset()?.organizationUnitName }}
+            </span>
+            <span class="hero-meta">
+              <mat-icon class="hero-meta-icon">category</mat-icon>
+              {{ asset()?.categoryName }}
             </span>
           </div>
-          <h1 class="text-2xl font-extrabold text-slate-800 font-sans tracking-tight">{{ asset()?.name }}</h1>
-          <p class="text-sm text-slate-500 font-sans">
-            <mat-icon class="!w-4 !h-4 !text-[14px] align-middle mr-1 text-slate-400">business</mat-icon>
-            Belongs to: <span class="font-semibold text-slate-700">{{ asset()?.organizationUnitName }}</span>
-            <span class="mx-2 text-slate-300">|</span>
-            <mat-icon class="!w-4 !h-4 !text-[14px] align-middle mr-1 text-slate-400">category</mat-icon>
-            Category: <span class="font-semibold text-slate-700">{{ asset()?.categoryName }}</span>
-          </p>
         </div>
-        <div class="flex space-x-3">
-          <button mat-stroked-button type="button" routerLink="/assets" class="!text-slate-600 !rounded-xl !border-slate-300">
-            <mat-icon class="mr-1">arrow_back</mat-icon> Back to Assets
-          </button>
-          <a mat-raised-button color="accent" [routerLink]="['/assets/edit', asset()?.id]" *ngIf="isAdminOrManager()" class="!rounded-xl shadow-sm">
-            <mat-icon class="mr-1">edit</mat-icon> Edit Asset
+        <div class="flex items-center gap-2 shrink-0 mt-4 sm:mt-0">
+          <a routerLink="/assets" class="ghost-btn">
+            <mat-icon class="!text-[16px] !w-4 !h-4">arrow_back</mat-icon>Back
+          </a>
+          <a [routerLink]="['/assets/edit', asset()?.id]" *ngIf="isAdminOrManager()" class="primary-btn">
+            <mat-icon class="!text-[16px] !w-4 !h-4">edit</mat-icon>Edit Asset
           </a>
         </div>
       </div>
 
-      <!-- Quick Summary Cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-          <p class="text-xs text-slate-500 font-sans font-medium mb-1">Purchase Cost</p>
-          <p class="text-lg font-extrabold text-slate-800">{{ asset()?.purchaseCost ? (asset()?.purchaseCost | currency) : 'N/A' }}</p>
+      <!-- ── Summary row ── -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:#eef2ff">
+            <mat-icon style="color:#6366f1;font-size:18px;width:18px;height:18px">attach_money</mat-icon>
+          </div>
+          <div>
+            <p class="kpi-label">Purchase Cost</p>
+            <p class="kpi-value">{{ asset()?.purchaseCost ? (asset()?.purchaseCost | currency:'USD':'symbol':'1.0-0') : '—' }}</p>
+          </div>
+          <div class="kpi-bar" style="background:#6366f1"></div>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-          <p class="text-xs text-slate-500 font-sans font-medium mb-1">Purchase Date</p>
-          <p class="text-lg font-extrabold text-slate-800">{{ (asset()?.purchaseDate | date:'mediumDate') || 'N/A' }}</p>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:#f0fdf4">
+            <mat-icon style="color:#22c55e;font-size:18px;width:18px;height:18px">calendar_today</mat-icon>
+          </div>
+          <div>
+            <p class="kpi-label">Purchase Date</p>
+            <p class="kpi-value kpi-value--sm">{{ (asset()?.purchaseDate | date:'MMM d, y') || '—' }}</p>
+          </div>
+          <div class="kpi-bar" style="background:#22c55e"></div>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-          <p class="text-xs text-slate-500 font-sans font-medium mb-1">Warranty Expiry</p>
-          <p class="text-lg font-extrabold" [ngClass]="isWarrantyExpired() ? 'text-rose-600' : 'text-slate-800'">
-            {{ (asset()?.warrantyExpiryDate | date:'mediumDate') || 'N/A' }}
-            <span *ngIf="isWarrantyExpired()" class="block text-xs font-semibold text-rose-500 mt-0.5">⚠ Expired</span>
-            <span *ngIf="!isWarrantyExpired() && asset()?.warrantyExpiryDate && warrantyDaysLeft() > 0" class="block text-xs font-medium text-emerald-600 mt-0.5">{{ warrantyDaysLeft() }} days remaining</span>
-          </p>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" [style]="isWarrantyExpired() ? 'background:#fff1f2' : 'background:#fffbeb'">
+            <mat-icon [style]="isWarrantyExpired() ? 'color:#f43f5e;font-size:18px;width:18px;height:18px' : 'color:#f59e0b;font-size:18px;width:18px;height:18px'">verified_user</mat-icon>
+          </div>
+          <div>
+            <p class="kpi-label">Warranty</p>
+            <p class="kpi-value kpi-value--sm" [class.text-rose-500]="isWarrantyExpired()">
+              {{ (asset()?.warrantyExpiryDate | date:'MMM d, y') || '—' }}
+            </p>
+            <p class="kpi-sub text-rose-500" *ngIf="isWarrantyExpired()">Expired</p>
+            <p class="kpi-sub text-emerald-600" *ngIf="!isWarrantyExpired() && warrantyDaysLeft() > 0">{{ warrantyDaysLeft() }}d remaining</p>
+          </div>
+          <div class="kpi-bar" [style]="isWarrantyExpired() ? 'background:#f43f5e' : 'background:#f59e0b'"></div>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-          <p class="text-xs text-slate-500 font-sans font-medium mb-1">Documents</p>
-          <p class="text-lg font-extrabold text-slate-800">{{ asset()?.documents?.length || 0 }} <span class="text-sm font-normal text-slate-400">files</span></p>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:#ecfeff">
+            <mat-icon style="color:#06b6d4;font-size:18px;width:18px;height:18px">folder_open</mat-icon>
+          </div>
+          <div>
+            <p class="kpi-label">Documents</p>
+            <p class="kpi-value">{{ asset()?.documents?.length || 0 }}<span class="kpi-unit">files</span></p>
+          </div>
+          <div class="kpi-bar" style="background:#06b6d4"></div>
         </div>
       </div>
 
-      <!-- Main Content Tabs -->
-      <mat-card class="!p-0 overflow-hidden">
-        <mat-progress-bar *ngIf="loading()" mode="query" class="absolute top-0 left-0 right-0 z-10"></mat-progress-bar>
-        
-        <mat-tab-group dynamicHeight class="custom-tabs">
-          
-          <!-- Details Tab -->
-          <mat-tab label="Overview">
-            <div class="p-6 md:p-8 space-y-8">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
-                <!-- Info Section -->
-                <div class="space-y-4">
-                  <h3 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center">
-                    <mat-icon class="mr-2 text-cyan-500 !w-5 !h-5 !text-[20px]">info</mat-icon> Asset Details
-                  </h3>
-                  <div class="grid grid-cols-2 gap-y-3 text-sm font-sans">
-                    <span class="text-slate-500">Asset Tag</span>
-                    <span class="font-bold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded w-fit">{{ asset()?.assetTag }}</span>
-                    
-                    <span class="text-slate-500">Classification</span>
-                    <span class="font-medium text-slate-800">{{ asset()?.categoryName }}</span>
-                    
-                    <span class="text-slate-500">Serial Number (S/N)</span>
-                    <span class="font-medium text-slate-800 font-mono text-xs">{{ asset()?.serialNumber || 'N/A' }}</span>
-                    
-                    <span class="text-slate-500">Current Status</span>
-                    <span class="px-2 py-0.5 text-xs font-bold rounded-full w-fit" [ngClass]="getStatusClass(asset()!.status)">{{ formatStatus(asset()!.status) }}</span>
-                    
-                    <span class="text-slate-500">Organization Unit</span>
-                    <span class="font-medium text-slate-800">{{ asset()?.organizationUnitName }}</span>
-                    
-                    <span class="text-slate-500">Registered On</span>
-                    <span class="font-medium text-slate-800">{{ asset()?.createdAt | date:'medium' }}</span>
-                    
-                    <span class="text-slate-500">Last Updated</span>
-                    <span class="font-medium text-slate-800">{{ (asset()?.updatedAt | date:'medium') || 'Never modified' }}</span>
-                  </div>
-                </div>
+      <!-- ── Tab card ── -->
+      <div class="tab-card">
+        <mat-progress-bar *ngIf="loading()" mode="query" class="absolute top-0 left-0 right-0"></mat-progress-bar>
+        <mat-tab-group dynamicHeight>
 
-                <!-- Financial Section -->
-                <div class="space-y-4">
-                  <h3 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center">
-                    <mat-icon class="mr-2 text-emerald-500 !w-5 !h-5 !text-[20px]">payments</mat-icon> Procurement & Warranty
-                  </h3>
-                  <div class="grid grid-cols-2 gap-y-3 text-sm font-sans">
-                    <span class="text-slate-500">Purchase Date</span>
-                    <span class="font-medium text-slate-800">{{ (asset()?.purchaseDate | date:'mediumDate') || 'N/A' }}</span>
-                    
-                    <span class="text-slate-500">Purchase Cost</span>
-                    <span class="font-bold text-slate-800 text-base">{{ asset()?.purchaseCost ? (asset()?.purchaseCost | currency) : 'N/A' }}</span>
-                    
-                    <span class="text-slate-500">Warranty Expiry</span>
-                    <span class="font-medium text-slate-800" [ngClass]="{'text-rose-600': isWarrantyExpired()}">
-                      {{ (asset()?.warrantyExpiryDate | date:'mediumDate') || 'N/A' }}
-                      <span *ngIf="isWarrantyExpired()" class="text-xs font-bold ml-1">(Expired)</span>
-                    </span>
-                    
-                    <span class="text-slate-500">Warranty Status</span>
-                    <span *ngIf="!asset()?.warrantyExpiryDate" class="text-slate-400 italic">No warranty info</span>
-                    <span *ngIf="asset()?.warrantyExpiryDate && isWarrantyExpired()" class="px-2 py-0.5 text-xs font-bold rounded-full bg-rose-100 text-rose-700 w-fit">Expired</span>
-                    <span *ngIf="asset()?.warrantyExpiryDate && !isWarrantyExpired()" class="px-2 py-0.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700 w-fit">Active — {{ warrantyDaysLeft() }} days left</span>
-                  </div>
-                </div>
-
-                <!-- Description -->
-                <div class="md:col-span-2 space-y-2" *ngIf="asset()?.description">
-                  <h3 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center">
-                    <mat-icon class="mr-2 text-slate-400 !w-5 !h-5 !text-[20px]">description</mat-icon> Description
-                  </h3>
-                  <p class="text-slate-600 leading-relaxed font-sans bg-slate-50 p-4 rounded-xl border border-slate-100">{{ asset()?.description }}</p>
-                </div>
-              </div>
-            </div>
-          </mat-tab>
-
-          <!-- History Tab -->
+          <!-- Overview -->
           <mat-tab>
             <ng-template mat-tab-label>
-              <span class="flex items-center space-x-1.5">
-                <mat-icon class="!w-5 !h-5 !text-[18px]">history</mat-icon>
-                <span>Activity Log</span>
-                <span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 text-slate-600">{{ asset()!.history.length }}</span>
-              </span>
+              <span class="tab-label"><mat-icon class="tab-icon">info_outline</mat-icon>Overview</span>
             </ng-template>
-            <div class="p-6 md:p-8">
-              <!-- Timeline view -->
-              <div class="space-y-4" *ngIf="asset()!.history.length > 0">
-                <div *ngFor="let h of asset()!.history; let i = index" class="flex items-start space-x-4 group">
-                  <div class="flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm" [ngClass]="getTimelineIconBg(h.changeType)">
-                      <mat-icon class="!w-5 !h-5 !text-[18px]">{{ getTimelineIcon(h.changeType) }}</mat-icon>
-                    </div>
-                    <div class="w-0.5 h-full bg-slate-200 mt-1" *ngIf="i < asset()!.history.length - 1"></div>
-                  </div>
-                  <div class="flex-1 pb-6">
-                    <div class="flex items-center space-x-2 mb-1">
-                      <span class="font-bold text-sm text-slate-800 font-sans">{{ formatChangeType(h.changeType) }}</span>
-                      <span class="text-xs text-slate-400">•</span>
-                      <span class="text-xs text-slate-500 font-sans">{{ h.timestamp | date:'medium' }}</span>
-                    </div>
-                    <p class="text-sm text-slate-600 font-sans">{{ h.newValue || 'No details recorded' }}</p>
-                    <p class="text-xs text-slate-400 font-sans mt-1" *ngIf="h.oldValue">Previous: {{ h.oldValue }}</p>
-                    <p class="text-xs text-slate-500 font-sans mt-1">
-                      <mat-icon class="!w-3 !h-3 !text-[12px] align-middle mr-0.5">person</mat-icon> {{ h.changedByUserName }}
-                    </p>
+            <div class="tab-body">
+              <div class="two-col-layout">
+                <div class="prop-section">
+                  <div class="prop-section-header"><div class="prop-section-dot" style="background:#6366f1"></div>Asset Details</div>
+                  <div class="prop-list">
+                    <div class="prop-row"><span class="prop-key">Asset Tag</span><span class="prop-val"><span class="tag-mono">{{ asset()?.assetTag }}</span></span></div>
+                    <div class="prop-row"><span class="prop-key">Category</span><span class="prop-val">{{ asset()?.categoryName }}</span></div>
+                    <div class="prop-row"><span class="prop-key">Serial Number</span><span class="prop-val font-mono text-xs tracking-wide">{{ asset()?.serialNumber || '—' }}</span></div>
+                    <div class="prop-row"><span class="prop-key">Status</span><span class="prop-val"><span class="status-badge" [ngClass]="getStatusClass(asset()!.status)">{{ formatStatus(asset()!.status) }}</span></span></div>
+                    <div class="prop-row"><span class="prop-key">Org Unit</span><span class="prop-val">{{ asset()?.organizationUnitName }}</span></div>
+                    <div class="prop-row"><span class="prop-key">Registered</span><span class="prop-val text-slate-500">{{ asset()?.createdAt | date:'MMM d, y · h:mm a' }}</span></div>
+                    <div class="prop-row" *ngIf="asset()?.updatedAt"><span class="prop-key">Last Updated</span><span class="prop-val text-slate-500">{{ asset()?.updatedAt | date:'MMM d, y · h:mm a' }}</span></div>
                   </div>
                 </div>
-              </div>
-
-              <!-- Empty History -->
-              <div *ngIf="asset()!.history.length === 0" class="text-center py-12">
-                <mat-icon class="!text-slate-300 !w-12 !h-12 !text-[48px] mb-2">history</mat-icon>
-                <p class="text-slate-500 font-sans">No activity log recorded</p>
-              </div>
-            </div>
-          </mat-tab>
-
-          <!-- Documents Tab -->
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <span class="flex items-center space-x-1.5">
-                <mat-icon class="!w-5 !h-5 !text-[18px]">attach_file</mat-icon>
-                <span>Documents</span>
-                <span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 text-slate-600">{{ asset()!.documents.length }}</span>
-              </span>
-            </ng-template>
-            <div class="p-6 md:p-8 space-y-6">
-              
-              <!-- Upload Section (Managers/Admins only) -->
-              <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 space-y-4" *ngIf="isAdminOrManager()">
-                <div class="flex items-center justify-between">
-                  <h3 class="text-base font-bold text-slate-800 font-sans flex items-center">
-                    <mat-icon class="mr-2 text-rose-500">cloud_upload</mat-icon> Upload Supporting Document
-                  </h3>
-                  <span class="text-xs text-slate-500 font-medium">Max size: 10 MB</span>
-                </div>
-                
-                <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
-                  <mat-form-field appearance="outline" class="w-full md:w-56 !mb-0">
-                    <mat-label>Document Type</mat-label>
-                    <mat-select [formControl]="docTypeControl">
-                      <mat-option value="Invoice">📄 Invoice</mat-option>
-                      <mat-option value="Warranty">🛡️ Warranty</mat-option>
-                      <mat-option value="Image">🖼️ Image</mat-option>
-                      <mat-option value="Manual">📘 Manual</mat-option>
-                      <mat-option value="Certificate">📜 Certificate</mat-option>
-                      <mat-option value="Other">📎 Other</mat-option>
-                    </mat-select>
-                  </mat-form-field>
-
-                  <div class="flex items-center space-x-3 w-full md:w-auto">
-                    <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.txt">
-                    <button mat-raised-button color="primary" (click)="fileInput.click()" class="!rounded-xl !py-5">
-                      <mat-icon class="mr-1">upload_file</mat-icon> Select File
-                    </button>
-                    <span class="text-sm font-semibold text-slate-700 font-sans max-w-[200px] truncate" *ngIf="selectedFile">
-                      {{ selectedFile.name }} <span class="text-xs text-slate-400">({{ formatBytes(selectedFile.size) }})</span>
-                    </span>
-                  </div>
-
-                  <button mat-raised-button color="accent" (click)="onUpload()" [disabled]="!selectedFile || docTypeControl.invalid || loading()" class="!rounded-xl !py-5 w-full md:w-auto shadow-md">
-                    Upload Document
-                  </button>
-                </div>
-              </div>
-
-              <!-- View Switcher -->
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-100" *ngIf="asset()!.documents.length > 0">
-                <div>
-                  <h3 class="text-lg font-extrabold text-slate-800 font-sans tracking-tight">Associated Documents</h3>
-                  <p class="text-xs text-slate-500">{{ asset()!.documents.length }} file(s) organized by document type</p>
-                </div>
-                <div class="inline-flex p-1 bg-slate-100 rounded-xl space-x-1">
-                  <button type="button" (click)="viewMode.set('tree')" [ngClass]="viewMode() === 'tree' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1">
-                    <mat-icon class="!w-4 !h-4 !text-[16px]">folder</mat-icon>
-                    <span>Categorized</span>
-                  </button>
-                  <button type="button" (click)="viewMode.set('table')" [ngClass]="viewMode() === 'table' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1">
-                    <mat-icon class="!w-4 !h-4 !text-[16px]">table_rows</mat-icon>
-                    <span>Table</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- CATEGORIZED TREE VIEW -->
-              <div *ngIf="viewMode() === 'tree' && asset()!.documents.length > 0" class="space-y-4">
-                <div *ngFor="let group of documentsGroupedByType()" class="border border-slate-200/70 rounded-2xl overflow-hidden bg-white shadow-sm">
-                  <div class="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                    <div class="flex items-center space-x-2.5">
-                      <mat-icon class="!text-slate-500">{{ getCategoryIcon(group.type) }}</mat-icon>
-                      <span class="font-bold text-sm text-slate-800 font-sans">{{ group.type }}</span>
-                      <span class="px-2 py-0.5 text-[11px] font-bold rounded-full" [ngClass]="getCategoryBadgeClass(group.type)">
-                        {{ group.docs.length }} {{ group.docs.length === 1 ? 'file' : 'files' }}
+                <div class="prop-section">
+                  <div class="prop-section-header"><div class="prop-section-dot" style="background:#22c55e"></div>Procurement & Warranty</div>
+                  <div class="prop-list">
+                    <div class="prop-row"><span class="prop-key">Purchase Date</span><span class="prop-val">{{ (asset()?.purchaseDate | date:'MMM d, y') || '—' }}</span></div>
+                    <div class="prop-row"><span class="prop-key">Purchase Cost</span><span class="prop-val font-semibold text-slate-800">{{ asset()?.purchaseCost ? (asset()?.purchaseCost | currency) : '—' }}</span></div>
+                    <div class="prop-row"><span class="prop-key">Warranty Expiry</span><span class="prop-val" [class.text-rose-600]="isWarrantyExpired()">{{ (asset()?.warrantyExpiryDate | date:'MMM d, y') || '—' }}</span></div>
+                    <div class="prop-row">
+                      <span class="prop-key">Warranty Status</span>
+                      <span class="prop-val">
+                        <span *ngIf="!asset()?.warrantyExpiryDate" class="text-slate-400 text-xs italic">No info</span>
+                        <span *ngIf="asset()?.warrantyExpiryDate && isWarrantyExpired()" class="status-badge status-disposed">Expired</span>
+                        <span *ngIf="asset()?.warrantyExpiryDate && !isWarrantyExpired()" class="status-badge status-active">Active · {{ warrantyDaysLeft() }}d left</span>
                       </span>
                     </div>
                   </div>
-                  <div class="divide-y divide-slate-100">
-                    <div *ngFor="let doc of group.docs" class="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors">
-                      <div class="flex items-start space-x-3">
-                        <div class="p-2 rounded-lg bg-slate-100 text-slate-600">
-                          <mat-icon class="!w-5 !h-5 !text-[20px]">{{ getFileIcon(doc.fileName) }}</mat-icon>
-                        </div>
-                        <div>
-                          <p class="font-bold text-sm text-slate-900 font-sans hover:text-cyan-600 cursor-pointer" (click)="onDownload(doc)" title="Click to download">
-                            {{ doc.fileName }}
-                          </p>
-                          <p class="text-xs text-slate-500 space-x-2 mt-0.5">
-                            <span>{{ formatBytes(doc.fileSizeBytes) }}</span>
-                            <span>•</span>
-                            <span>{{ doc.uploadedAt | date:'mediumDate' }}</span>
-                            <span>•</span>
-                            <span>by {{ doc.uploadedByUserName }}</span>
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex items-center space-x-2 self-end sm:self-auto">
-                        <button mat-stroked-button color="primary" (click)="onDownload(doc)" class="!rounded-lg !text-xs !py-1">
-                          <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">download</mat-icon> Download
-                        </button>
-                        <button mat-icon-button color="warn" (click)="onDeleteDoc(doc)" *ngIf="isAdminOrManager()" matTooltip="Delete this document">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
+                </div>
+                <div class="col-span-2" *ngIf="asset()?.description">
+                  <div class="prop-section">
+                    <div class="prop-section-header"><div class="prop-section-dot" style="background:#94a3b8"></div>Description</div>
+                    <p class="desc-text">{{ asset()?.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Activity Log -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <span class="tab-label">
+                <mat-icon class="tab-icon">history</mat-icon>Activity
+                <span class="tab-count">{{ asset()!.history.length }}</span>
+              </span>
+            </ng-template>
+            <div class="tab-body">
+              <div class="timeline" *ngIf="asset()!.history.length > 0">
+                <div *ngFor="let h of asset()!.history; let last = last" class="tl-item">
+                  <div class="tl-left">
+                    <div class="tl-dot" [ngClass]="getTimelineIconBg(h.changeType)">
+                      <mat-icon class="!text-[13px] !w-[13px] !h-[13px]">{{ getTimelineIcon(h.changeType) }}</mat-icon>
+                    </div>
+                    <div class="tl-line" *ngIf="!last"></div>
+                  </div>
+                  <div class="tl-card">
+                    <div class="tl-card-header">
+                      <span class="tl-event-name">{{ formatChangeType(h.changeType) }}</span>
+                      <span class="tl-time">{{ h.timestamp | date:'MMM d, y · h:mm a' }}</span>
+                    </div>
+                    <p class="tl-detail" *ngIf="h.newValue">{{ h.newValue }}</p>
+                    <div class="tl-meta">
+                      <mat-icon class="!text-[12px] !w-3 !h-3 text-slate-400">person_outline</mat-icon>
+                      <span>{{ h.changedByUserName }}</span>
+                      <span *ngIf="h.oldValue" class="tl-old-val">· was: {{ h.oldValue }}</span>
                     </div>
                   </div>
                 </div>
               </div>
+              <div *ngIf="asset()!.history.length === 0" class="empty-state">
+                <mat-icon class="empty-icon">history</mat-icon>
+                <p class="empty-title">No activity recorded yet</p>
+                <p class="empty-sub">Changes to this asset will appear here.</p>
+              </div>
+            </div>
+          </mat-tab>
 
-              <!-- FLAT TABLE VIEW -->
-              <table mat-table [dataSource]="asset()!.documents" class="w-full" *ngIf="viewMode() === 'table' && asset()!.documents.length > 0">
-                <ng-container matColumnDef="fileName">
-                  <th mat-header-cell *matHeaderCellDef class="!font-bold !text-slate-700">File Name</th>
-                  <td mat-cell *matCellDef="let doc" class="font-semibold text-slate-800 max-w-[200px] truncate" [title]="doc.fileName">{{ doc.fileName }}</td>
-                </ng-container>
-                <ng-container matColumnDef="type">
-                  <th mat-header-cell *matHeaderCellDef class="!font-bold !text-slate-700">Type</th>
-                  <td mat-cell *matCellDef="let doc" class="text-slate-600 font-sans">
-                    <span class="px-2 py-0.5 text-xs font-bold rounded" [ngClass]="getCategoryBadgeClass(doc.documentType)">{{ doc.documentType }}</span>
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="size">
-                  <th mat-header-cell *matHeaderCellDef class="!font-bold !text-slate-700">Size</th>
-                  <td mat-cell *matCellDef="let doc" class="text-slate-500 font-sans">{{ formatBytes(doc.fileSizeBytes) }}</td>
-                </ng-container>
-                <ng-container matColumnDef="uploaded">
-                  <th mat-header-cell *matHeaderCellDef class="!font-bold !text-slate-700">Uploaded</th>
-                  <td mat-cell *matCellDef="let doc" class="text-slate-500 font-sans">{{ doc.uploadedAt | date:'mediumDate' }}</td>
-                </ng-container>
-                <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef class="!font-bold !text-slate-700 text-right">Actions</th>
-                  <td mat-cell *matCellDef="let doc" class="text-right whitespace-nowrap">
-                    <button mat-icon-button color="primary" (click)="onDownload(doc)" matTooltip="Download">
-                      <mat-icon>download</mat-icon>
-                    </button>
-                    <button mat-icon-button color="warn" (click)="onDeleteDoc(doc)" *ngIf="isAdminOrManager()" matTooltip="Delete">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="documentColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: documentColumns;" class="hover:bg-slate-50 transition-colors"></tr>
-              </table>
+          <!-- Documents -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <span class="tab-label">
+                <mat-icon class="tab-icon">attach_file</mat-icon>Documents
+                <span class="tab-count">{{ asset()!.documents.length }}</span>
+              </span>
+            </ng-template>
+            <div class="tab-body space-y-5">
 
-              <!-- Empty Attachments -->
-              <div *ngIf="asset()!.documents.length === 0" class="text-center py-16">
-                <mat-icon class="!text-slate-300 !w-16 !h-16 !text-[64px] mb-3">folder_open</mat-icon>
-                <p class="text-slate-500 font-bold font-sans text-base mb-1">No documents yet</p>
-                <p class="text-slate-400 text-sm font-sans">Upload invoices, warranties, manuals, and certificates for this asset.</p>
+              <!-- Upload zone -->
+              <div class="upload-zone" *ngIf="isAdminOrManager()">
+                <div class="upload-zone-inner">
+                  <div class="upload-icon-wrap">
+                    <mat-icon class="upload-icon">cloud_upload</mat-icon>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="upload-title">Upload Document</p>
+                    <p class="upload-sub">PDF, images, Word, Excel — max 10 MB</p>
+                  </div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <mat-form-field appearance="outline" class="doc-type-field">
+                      <mat-label>Type</mat-label>
+                      <mat-select [formControl]="docTypeControl">
+                        <mat-option value="Invoice">Invoice</mat-option>
+                        <mat-option value="Warranty">Warranty</mat-option>
+                        <mat-option value="Image">Image</mat-option>
+                        <mat-option value="Manual">Manual</mat-option>
+                        <mat-option value="Certificate">Certificate</mat-option>
+                        <mat-option value="Other">Other</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden"
+                           accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.txt">
+                    <button type="button" class="outline-btn" (click)="fileInput.click()">
+                      <mat-icon class="!text-[15px] !w-[15px] !h-[15px]">upload_file</mat-icon>Choose File
+                    </button>
+                    <span *ngIf="selectedFile" class="selected-file-name">
+                      <mat-icon class="!text-[13px] !w-[13px] !h-[13px] text-indigo-500">description</mat-icon>
+                      {{ selectedFile.name }}
+                    </span>
+                    <button type="button" class="primary-btn"
+                            (click)="onUpload()"
+                            [disabled]="!selectedFile || docTypeControl.invalid || loading()">
+                      Upload
+                    </button>
+                  </div>
+                </div>
               </div>
 
+              <!-- Doc list -->
+              <div *ngIf="asset()!.documents.length > 0">
+                <div class="doc-list-header">
+                  <p class="doc-list-title">Documents <span class="doc-count">{{ asset()!.documents.length }}</span></p>
+                  <div class="view-toggle">
+                    <button [class.active]="viewMode() === 'tree'" (click)="viewMode.set('tree')">
+                      <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">folder</mat-icon>Grouped
+                    </button>
+                    <button [class.active]="viewMode() === 'table'" (click)="viewMode.set('table')">
+                      <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">table_rows</mat-icon>Table
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Grouped -->
+                <div *ngIf="viewMode() === 'tree'" class="space-y-3">
+                  <div *ngFor="let group of documentsGroupedByType()" class="doc-group">
+                    <div class="doc-group-header">
+                      <div class="doc-group-icon" [ngClass]="getCategoryBadgeClass(group.type)">
+                        <mat-icon class="!text-[15px] !w-[15px] !h-[15px]">{{ getCategoryIcon(group.type) }}</mat-icon>
+                      </div>
+                      <span class="doc-group-name">{{ group.type }}</span>
+                      <span class="doc-group-count">{{ group.docs.length }}</span>
+                    </div>
+                    <div class="doc-rows">
+                      <div *ngFor="let doc of group.docs" class="doc-row">
+                        <div class="doc-file-icon">
+                          <mat-icon class="!text-[17px] !w-[17px] !h-[17px]">{{ getFileIcon(doc.fileName) }}</mat-icon>
+                        </div>
+                        <div class="doc-info">
+                          <p class="doc-name" (click)="onDownload(doc)">{{ doc.fileName }}</p>
+                          <p class="doc-meta">{{ formatBytes(doc.fileSizeBytes) }} · {{ doc.uploadedAt | date:'MMM d, y' }} · {{ doc.uploadedByUserName }}</p>
+                        </div>
+                        <div class="doc-actions">
+                          <button class="outline-btn outline-btn--xs" (click)="onDownload(doc)">
+                            <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">download</mat-icon>Download
+                          </button>
+                          <button mat-icon-button (click)="onDeleteDoc(doc)" *ngIf="isAdminOrManager()" matTooltip="Delete" class="delete-btn">
+                            <mat-icon class="!text-[17px]">delete_outline</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Table -->
+                <table mat-table [dataSource]="asset()!.documents" class="w-full" *ngIf="viewMode() === 'table'">
+                  <ng-container matColumnDef="fileName">
+                    <th mat-header-cell *matHeaderCellDef>File</th>
+                    <td mat-cell *matCellDef="let doc">
+                      <div class="flex items-center gap-2">
+                        <mat-icon class="!text-[16px] !w-4 !h-4 text-slate-400">{{ getFileIcon(doc.fileName) }}</mat-icon>
+                        <span class="text-sm font-medium text-slate-800">{{ doc.fileName }}</span>
+                      </div>
+                    </td>
+                  </ng-container>
+                  <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef>Type</th>
+                    <td mat-cell *matCellDef="let doc">
+                      <span class="doc-type-pill" [ngClass]="getCategoryBadgeClass(doc.documentType)">{{ doc.documentType }}</span>
+                    </td>
+                  </ng-container>
+                  <ng-container matColumnDef="size">
+                    <th mat-header-cell *matHeaderCellDef>Size</th>
+                    <td mat-cell *matCellDef="let doc" class="text-slate-500 text-sm">{{ formatBytes(doc.fileSizeBytes) }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="uploaded">
+                    <th mat-header-cell *matHeaderCellDef>Uploaded</th>
+                    <td mat-cell *matCellDef="let doc" class="text-slate-500 text-sm">{{ doc.uploadedAt | date:'MMM d, y' }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+                    <td mat-cell *matCellDef="let doc" class="text-right whitespace-nowrap">
+                      <button mat-icon-button (click)="onDownload(doc)" matTooltip="Download" class="!text-indigo-500"><mat-icon>download</mat-icon></button>
+                      <button mat-icon-button (click)="onDeleteDoc(doc)" *ngIf="isAdminOrManager()" matTooltip="Delete" class="delete-btn"><mat-icon>delete_outline</mat-icon></button>
+                    </td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="documentColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: documentColumns;"></tr>
+                </table>
+              </div>
+
+              <div *ngIf="asset()!.documents.length === 0" class="empty-state">
+                <mat-icon class="empty-icon">folder_open</mat-icon>
+                <p class="empty-title">No documents yet</p>
+                <p class="empty-sub">Upload invoices, warranties, manuals, or certificates.</p>
+              </div>
             </div>
           </mat-tab>
 
         </mat-tab-group>
-      </mat-card>
+      </div>
     </div>
 
     <!-- Loading skeleton -->
     <div *ngIf="!asset() && loading()" class="space-y-4 animate-pulse">
-      <div class="bg-slate-200 h-24 rounded-2xl"></div>
-      <div class="grid grid-cols-4 gap-4">
-        <div class="bg-slate-200 h-20 rounded-xl" *ngFor="let i of [1,2,3,4]"></div>
+      <div class="h-32 bg-slate-200 rounded-2xl"></div>
+      <div class="grid grid-cols-4 gap-3">
+        <div class="h-24 bg-slate-200 rounded-xl" *ngFor="let i of [1,2,3,4]"></div>
       </div>
-      <div class="bg-slate-200 h-96 rounded-2xl"></div>
+      <div class="h-96 bg-slate-200 rounded-xl"></div>
     </div>
   `,
   styles: [`
-    ::ng-deep .custom-tabs .mat-mdc-tab-header {
-      border-bottom: 1px solid #f1f5f9;
-      background: #fafafb;
-    }
-    ::ng-deep .custom-tabs .mat-mdc-tab {
-      min-width: 140px;
-    }
+    /* Hero */
+    .hero-header { display:flex; flex-direction:column; gap:0; background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#1e3a5f 100%); border-radius:14px; padding:24px 28px; border:1px solid rgba(99,102,241,.2); box-shadow:0 4px 20px -4px rgb(0 0 0/.2); }
+    @media(min-width:640px){ .hero-header{flex-direction:row;align-items:center;justify-content:space-between;} }
+    .hero-left { flex:1; min-width:0; }
+    .bc-link    { font-size:11.5px;color:#a5b4fc;text-decoration:none;font-weight:500; }
+    .bc-link:hover { text-decoration:underline; }
+    .bc-sep     { font-size:14px!important;width:14px!important;height:14px!important;color:#4f46e5!important; }
+    .bc-current { font-size:11.5px;color:#6366f1;font-weight:500; }
+    .hero-title { font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.02em;line-height:1.2; }
+    .tag-badge-hero { font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(99,102,241,.25);color:#a5b4fc;border:1px solid rgba(99,102,241,.35);font-family:monospace;letter-spacing:.05em; }
+    .hero-meta { display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#94a3b8; }
+    .hero-meta-icon { font-size:13px!important;width:13px!important;height:13px!important;color:#6366f1!important; }
+
+    /* Status */
+    .status-badge { display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.02em; }
+    .status-active   { background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0; }
+    .status-repair   { background:#fffbeb;color:#b45309;border:1px solid #fde68a; }
+    .status-storage  { background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe; }
+    .status-retired  { background:#f8fafc;color:#475569;border:1px solid #e2e8f0; }
+    .status-disposed { background:#fff1f2;color:#be123c;border:1px solid #fecdd3; }
+
+    /* Buttons */
+    .ghost-btn { display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);font-size:13px;font-weight:500;color:#cbd5e1;cursor:pointer;text-decoration:none;transition:background .15s;white-space:nowrap; }
+    .ghost-btn:hover { background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25); }
+    .primary-btn { display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);font-size:13px;font-weight:600;color:#fff;cursor:pointer;text-decoration:none;box-shadow:0 2px 8px rgb(99 102 241/.4);transition:opacity .15s;white-space:nowrap; }
+    .primary-btn:hover:not([disabled]) { opacity:.88; }
+    .primary-btn[disabled] { background:#e2e8f0;color:#94a3b8;box-shadow:none;cursor:not-allowed; }
+    .outline-btn { display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 14px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;font-size:13px;font-weight:500;color:#475569;cursor:pointer;transition:border-color .15s;white-space:nowrap; }
+    .outline-btn:hover { border-color:#94a3b8;color:#334155; }
+    .outline-btn--xs { height:28px!important;padding:0 10px!important;font-size:12px!important; }
+    .delete-btn { color:#f43f5e!important; }
+
+    /* KPI */
+    .kpi-card { position:relative;background:#fff;border-radius:12px;border:1px solid #e9edf2;padding:16px 18px 20px;display:flex;align-items:center;gap:14px;overflow:hidden;box-shadow:0 1px 3px rgb(0 0 0/.05);transition:box-shadow .2s,transform .2s; }
+    .kpi-card:hover { box-shadow:0 6px 20px -4px rgb(0 0 0/.1);transform:translateY(-1px); }
+    .kpi-icon-wrap { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .kpi-label    { font-size:11.5px;color:#64748b;font-weight:500;margin:0; }
+    .kpi-value    { font-size:20px;font-weight:700;color:#0f172a;margin:3px 0 0;line-height:1.1;font-family:'Outfit',sans-serif; }
+    .kpi-value--sm { font-size:14px; }
+    .kpi-unit     { font-size:12px;font-weight:400;color:#94a3b8;margin-left:4px; }
+    .kpi-sub      { font-size:10.5px;font-weight:600;margin:2px 0 0; }
+    .kpi-bar      { position:absolute;bottom:0;left:0;right:0;height:3px; }
+
+    /* Tab card */
+    .tab-card { position:relative;background:#fff;border-radius:12px;border:1px solid #e9edf2;overflow:hidden;box-shadow:0 1px 3px rgb(0 0 0/.05); }
+    .tab-label { display:flex;align-items:center;gap:6px; }
+    .tab-icon  { font-size:16px!important;width:16px!important;height:16px!important; }
+    .tab-count { font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:#f1f5f9;color:#64748b; }
+    .tab-body  { padding:24px 28px; }
+
+    /* Two-col */
+    .two-col-layout { display:grid;grid-template-columns:1fr 1fr;gap:20px; }
+    @media(max-width:767px){ .two-col-layout{grid-template-columns:1fr;} .col-span-2{grid-column:span 1;} }
+    .col-span-2 { grid-column:span 2; }
+
+    /* Prop section */
+    .prop-section { background:#fafafa;border:1px solid #f1f5f9;border-radius:10px;overflow:hidden; }
+    .prop-section-header { display:flex;align-items:center;gap:8px;padding:11px 16px;background:#f8fafc;border-bottom:1px solid #f1f5f9;font-size:12px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.06em; }
+    .prop-section-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+    .prop-list { padding:4px 0; }
+    .prop-row { display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid #f1f5f9;gap:12px; }
+    .prop-row:last-child { border-bottom:none; }
+    .prop-key { font-size:12.5px;color:#64748b;font-weight:500;flex-shrink:0; }
+    .prop-val { font-size:13px;color:#0f172a;font-weight:500;text-align:right; }
+    .tag-mono { font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;background:#eef2ff;color:#4f46e5;font-family:monospace;letter-spacing:.05em; }
+    .desc-text { padding:14px 16px;font-size:13.5px;color:#475569;line-height:1.7;margin:0; }
+
+    /* Timeline */
+    .timeline { display:flex;flex-direction:column;gap:0; }
+    .tl-item  { display:flex;gap:14px; }
+    .tl-left  { display:flex;flex-direction:column;align-items:center;flex-shrink:0; }
+    .tl-dot   { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 0 0 4px #fff,0 0 0 5px #e9edf2; }
+    .tl-line  { width:2px;flex:1;background:#f1f5f9;margin:6px 0;min-height:20px; }
+    .tl-card  { flex:1;background:#fafafa;border:1px solid #f1f5f9;border-radius:10px;padding:12px 16px;margin-bottom:12px; }
+    .tl-card-header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px; }
+    .tl-event-name { font-size:13px;font-weight:700;color:#1e293b; }
+    .tl-time       { font-size:11.5px;color:#94a3b8; }
+    .tl-detail     { font-size:13px;color:#475569;margin:4px 0 6px; }
+    .tl-meta       { display:flex;align-items:center;gap:4px;font-size:11.5px;color:#94a3b8; }
+    .tl-old-val    { color:#cbd5e1; }
+    .tl-created { background:#22c55e; } .tl-updated { background:#6366f1; }
+    .tl-status  { background:#f59e0b; } .tl-docadd  { background:#8b5cf6; }
+    .tl-docrem  { background:#f43f5e; } .tl-default { background:#94a3b8; }
+
+    /* Upload zone */
+    .upload-zone { border-radius:12px;border:1.5px dashed #c7d2fe;background:#fafaff;padding:18px 20px; }
+    .upload-zone-inner { display:flex;align-items:center;gap:16px;flex-wrap:wrap; }
+    .upload-icon-wrap { width:44px;height:44px;border-radius:12px;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .upload-icon { color:#6366f1!important;font-size:22px!important;width:22px!important;height:22px!important; }
+    .upload-title { font-size:13.5px;font-weight:600;color:#1e293b;margin:0; }
+    .upload-sub   { font-size:11.5px;color:#94a3b8;margin:2px 0 0; }
+    .doc-type-field { width:140px!important; }
+    .upload-zone .outline-btn { border-color:#e2e8f0;background:#fff;color:#475569; }
+    .upload-zone .outline-btn:hover { border-color:#94a3b8; }
+    .selected-file-name { display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;color:#475569;background:#eef2ff;border-radius:6px;padding:4px 10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+
+    /* Doc list */
+    .doc-list-header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px; }
+    .doc-list-title  { font-size:13.5px;font-weight:600;color:#0f172a;margin:0; }
+    .doc-count { display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:10px;background:#eef2ff;color:#4f46e5;padding:0 6px;margin-left:6px; }
+    .view-toggle { display:inline-flex;background:#f1f5f9;border-radius:8px;padding:3px;gap:2px; }
+    .view-toggle button { display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;border:none;font-size:12px;font-weight:500;color:#64748b;background:transparent;cursor:pointer;transition:background .15s,color .15s; }
+    .view-toggle button.active { background:#fff;color:#0f172a;box-shadow:0 1px 3px rgb(0 0 0/.08); }
+
+    /* Doc group */
+    .doc-group { border:1px solid #e9edf2;border-radius:10px;overflow:hidden; }
+    .doc-group-header { display:flex;align-items:center;gap:10px;padding:10px 16px;background:#f8fafc;border-bottom:1px solid #f1f5f9; }
+    .doc-group-icon { width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .doc-group-name { font-size:13px;font-weight:600;color:#334155; }
+    .doc-group-count { margin-left:auto;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;background:#e9edf2;color:#64748b; }
+    .doc-rows { background:#fff; }
+    .doc-row { display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid #f8fafc;transition:background .12s; }
+    .doc-row:last-child { border-bottom:none; }
+    .doc-row:hover { background:#fafafa; }
+    .doc-file-icon { width:34px;height:34px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#64748b; }
+    .doc-info { flex:1;min-width:0; }
+    .doc-name { font-size:13px;font-weight:600;color:#1e293b;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s;margin:0; }
+    .doc-name:hover { color:#6366f1; }
+    .doc-meta { font-size:11.5px;color:#94a3b8;margin-top:2px; }
+    .doc-actions { display:flex;align-items:center;gap:4px;flex-shrink:0; }
+    .doc-type-pill { font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px; }
+    .badge-invoice     { background:#eff6ff;color:#1d4ed8; }
+    .badge-warranty    { background:#f0fdf4;color:#15803d; }
+    .badge-image       { background:#f5f3ff;color:#7c3aed; }
+    .badge-manual      { background:#fffbeb;color:#b45309; }
+    .badge-certificate { background:#fff1f2;color:#be123c; }
+    .badge-other       { background:#f8fafc;color:#475569; }
+
+    /* Empty */
+    .empty-state { text-align:center;padding:52px 24px; }
+    .empty-icon  { font-size:46px!important;width:46px!important;height:46px!important;color:#cbd5e1!important; }
+    .empty-title { font-size:14px;font-weight:600;color:#475569;margin:12px 0 4px; }
+    .empty-sub   { font-size:12.5px;color:#94a3b8; }
   `]
 })
 export class AssetDetailComponent implements OnInit {
@@ -403,18 +514,15 @@ export class AssetDetailComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
-  readonly asset = signal<AssetDetailDto | null>(null);
+  readonly asset   = signal<AssetDetailDto | null>(null);
   readonly loading = signal(false);
   readonly viewMode = signal<'tree' | 'table'>('tree');
 
-  // Document upload form controls
   readonly docTypeControl = new FormControl('Other', [Validators.required]);
   selectedFile: File | null = null;
 
-  readonly historyColumns = ['timestamp', 'changeType', 'oldValue', 'newValue', 'user'];
   readonly documentColumns = ['fileName', 'type', 'size', 'uploaded', 'actions'];
 
-  /** Group documents by their DocumentType for the categorized tree view */
   readonly documentsGroupedByType = computed(() => {
     const docs = this.asset()?.documents ?? [];
     const typeOrder = ['Invoice', 'Warranty', 'Image', 'Manual', 'Certificate', 'Other'];
@@ -424,33 +532,24 @@ export class AssetDetailComponent implements OnInit {
       if (!grouped.has(type)) grouped.set(type, []);
       grouped.get(type)!.push(doc);
     }
-    return typeOrder
-      .filter(t => grouped.has(t))
-      .map(t => ({ type: t, docs: grouped.get(t)! }));
+    return typeOrder.filter(t => grouped.has(t)).map(t => ({ type: t, docs: grouped.get(t)! }));
   });
 
-  /** Days remaining on warranty */
   warrantyDaysLeft(): number {
     const expiry = this.asset()?.warrantyExpiryDate;
     if (!expiry) return 0;
-    const diff = new Date(expiry).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    return Math.max(0, Math.ceil((new Date(expiry).getTime() - Date.now()) / 86400000));
   }
 
   ngOnInit(): void {
     const id = this.route.snapshot.params['id'];
-    if (id) {
-      this.loadAsset(id);
-    }
+    if (id) this.loadAsset(id);
   }
 
   private loadAsset(id: string): void {
     this.loading.set(true);
     this.assetService.getAssetById(id).subscribe({
-      next: (res) => {
-        this.asset.set(res);
-        this.loading.set(false);
-      },
+      next: (res) => { this.asset.set(res); this.loading.set(false); },
       error: () => {
         this.loading.set(false);
         this.snackBar.open('Error loading asset details.', 'Close', { duration: 4000, panelClass: ['error-snackbar'] });
@@ -466,38 +565,32 @@ export class AssetDetailComponent implements OnInit {
 
   isWarrantyExpired(): boolean {
     const expiry = this.asset()?.warrantyExpiryDate;
-    if (!expiry) return false;
-    return new Date(expiry).getTime() < Date.now();
+    return !!expiry && new Date(expiry).getTime() < Date.now();
   }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-    }
+    if (file) this.selectedFile = file;
   }
 
   onUpload(): void {
     const assetId = this.asset()?.id;
     if (!assetId || !this.selectedFile || this.docTypeControl.invalid) return;
-
-    const maxSizeBytes = 10 * 1024 * 1024;
-    if (this.selectedFile.size > maxSizeBytes) {
-      this.snackBar.open('File exceeds maximum size of 10 MB.', 'Close', { duration: 4000 });
+    if (this.selectedFile.size > 10 * 1024 * 1024) {
+      this.snackBar.open('File exceeds 10 MB limit.', 'Close', { duration: 4000 });
       return;
     }
-
     this.loading.set(true);
     this.documentService.uploadDocument(assetId, this.selectedFile, this.docTypeControl.value!).subscribe({
       next: () => {
         this.loading.set(false);
         this.selectedFile = null;
-        this.snackBar.open('Document uploaded successfully.', 'Close', { duration: 3000 });
+        this.snackBar.open('Document uploaded.', 'Close', { duration: 3000 });
         this.loadAsset(assetId);
       },
       error: (err) => {
         this.loading.set(false);
-        this.snackBar.open(err.error?.message || 'Error uploading document.', 'Close', { duration: 4000, panelClass: ['error-snackbar'] });
+        this.snackBar.open(err.error?.message || 'Upload failed.', 'Close', { duration: 4000, panelClass: ['error-snackbar'] });
       }
     });
   }
@@ -509,133 +602,95 @@ export class AssetDetailComponent implements OnInit {
         this.loading.set(false);
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = doc.fileName;
-        document.body.appendChild(a);
-        a.click();
+        a.href = url; a.download = doc.fileName;
+        document.body.appendChild(a); a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       },
-      error: () => {
-        this.loading.set(false);
-        this.snackBar.open('Error downloading document.', 'Close', { duration: 4000 });
-      }
+      error: () => { this.loading.set(false); this.snackBar.open('Download failed.', 'Close', { duration: 4000 }); }
     });
   }
 
   onDeleteDoc(doc: AssetDocumentDto): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Delete Document',
-        message: `Are you sure you want to permanently delete "${doc.fileName}"? This action cannot be undone.`,
-        confirmText: 'Delete'
-      }
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'Delete Document', message: `Permanently delete "${doc.fileName}"? This cannot be undone.`, confirmText: 'Delete' }
     });
-
-    dialogRef.afterClosed().subscribe(confirm => {
-      if (confirm) {
-        this.loading.set(true);
-        this.documentService.deleteDocument(doc.id).subscribe({
-          next: () => {
-            this.loading.set(false);
-            this.snackBar.open('Document deleted successfully.', 'Close', { duration: 3000 });
-            this.loadAsset(this.asset()!.id);
-          },
-          error: () => {
-            this.loading.set(false);
-            this.snackBar.open('Error deleting document.', 'Close', { duration: 4000, panelClass: ['error-snackbar'] });
-          }
-        });
-      }
+    ref.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.loading.set(true);
+      this.documentService.deleteDocument(doc.id).subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.snackBar.open('Document deleted.', 'Close', { duration: 3000 });
+          this.loadAsset(this.asset()!.id);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.snackBar.open('Delete failed.', 'Close', { duration: 4000, panelClass: ['error-snackbar'] });
+        }
+      });
     });
   }
 
-  // --- UI Helper Methods ---
+  // ── UI helpers ──
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'Active': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-      case 'InRepair': return 'bg-amber-100 text-amber-800 border border-amber-200';
-      case 'InStorage': return 'bg-blue-100 text-blue-800 border border-blue-200';
-      case 'Retired': return 'bg-slate-100 text-slate-800 border border-slate-200';
-      case 'Disposed': return 'bg-rose-100 text-rose-800 border border-rose-200';
-      default: return 'bg-slate-100 text-slate-800';
+      case 'Active':    return 'status-active';
+      case 'InRepair':  return 'status-repair';
+      case 'InStorage': return 'status-storage';
+      case 'Retired':   return 'status-retired';
+      case 'Disposed':  return 'status-disposed';
+      default:          return 'status-retired';
     }
   }
 
-  formatStatus(status: string): string {
-    if (status === 'InRepair') return 'In Repair';
-    if (status === 'InStorage') return 'In Storage';
-    return status;
+  formatStatus(s: string): string {
+    if (s === 'InRepair')  return 'In Repair';
+    if (s === 'InStorage') return 'In Storage';
+    return s;
   }
 
-  formatChangeType(type: string): string {
-    if (type === 'StatusChanged') return 'Status Changed';
-    if (type === 'DocumentAdded') return 'Document Added';
-    if (type === 'DocumentRemoved') return 'Document Removed';
-    return type;
+  formatChangeType(t: string): string {
+    if (t === 'StatusChanged')   return 'Status Changed';
+    if (t === 'DocumentAdded')   return 'Document Added';
+    if (t === 'DocumentRemoved') return 'Document Removed';
+    return t;
   }
 
   formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (!bytes) return '0 B';
+    const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
   getCategoryIcon(type: string): string {
-    switch (type) {
-      case 'Invoice': return 'receipt_long';
-      case 'Warranty': return 'verified_user';
-      case 'Image': return 'image';
-      case 'Manual': return 'menu_book';
-      case 'Certificate': return 'workspace_premium';
-      default: return 'attach_file';
-    }
+    const map: Record<string, string> = { Invoice: 'receipt_long', Warranty: 'verified_user', Image: 'image', Manual: 'menu_book', Certificate: 'workspace_premium' };
+    return map[type] ?? 'attach_file';
   }
 
   getCategoryBadgeClass(type: string): string {
-    switch (type) {
-      case 'Invoice': return 'bg-blue-100 text-blue-700';
-      case 'Warranty': return 'bg-emerald-100 text-emerald-700';
-      case 'Image': return 'bg-violet-100 text-violet-700';
-      case 'Manual': return 'bg-amber-100 text-amber-700';
-      case 'Certificate': return 'bg-rose-100 text-rose-700';
-      default: return 'bg-slate-100 text-slate-600';
-    }
+    const map: Record<string, string> = { Invoice: 'badge-invoice', Warranty: 'badge-warranty', Image: 'badge-image', Manual: 'badge-manual', Certificate: 'badge-certificate', Other: 'badge-other' };
+    return map[type] ?? 'badge-other';
   }
 
   getFileIcon(fileName: string): string {
     const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+    if (['jpg','jpeg','png','gif','webp'].includes(ext)) return 'image';
     if (ext === 'pdf') return 'picture_as_pdf';
-    if (['doc', 'docx'].includes(ext)) return 'article';
-    if (['xls', 'xlsx'].includes(ext)) return 'table_chart';
+    if (['doc','docx'].includes(ext)) return 'article';
+    if (['xls','xlsx'].includes(ext)) return 'table_chart';
     return 'insert_drive_file';
   }
 
   getTimelineIcon(changeType: string): string {
-    switch (changeType) {
-      case 'Created': return 'add_circle';
-      case 'Updated': return 'edit';
-      case 'StatusChanged': return 'swap_horiz';
-      case 'Assigned': return 'swap_horiz';
-      case 'DocumentAdded': return 'upload_file';
-      case 'DocumentRemoved': return 'delete';
-      default: return 'history';
-    }
+    const map: Record<string, string> = { Created: 'add', Updated: 'edit', StatusChanged: 'swap_horiz', Assigned: 'swap_horiz', DocumentAdded: 'upload_file', DocumentRemoved: 'delete' };
+    return map[changeType] ?? 'history';
   }
 
   getTimelineIconBg(changeType: string): string {
-    switch (changeType) {
-      case 'Created': return 'bg-emerald-500';
-      case 'Updated': return 'bg-blue-500';
-      case 'StatusChanged': return 'bg-amber-500';
-      case 'Assigned': return 'bg-cyan-500';
-      case 'DocumentAdded': return 'bg-violet-500';
-      case 'DocumentRemoved': return 'bg-rose-500';
-      default: return 'bg-slate-400';
-    }
+    const map: Record<string, string> = { Created: 'tl-created', Updated: 'tl-updated', StatusChanged: 'tl-status', Assigned: 'tl-status', DocumentAdded: 'tl-docadd', DocumentRemoved: 'tl-docrem' };
+    return map[changeType] ?? 'tl-default';
   }
 }
