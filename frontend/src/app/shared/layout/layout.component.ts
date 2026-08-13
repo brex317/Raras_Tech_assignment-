@@ -26,111 +26,204 @@ import { AuthService } from '../../core/services/auth.service';
   ],
   template: `
     <div class="flex flex-col h-screen overflow-hidden">
-      <!-- Top Toolbar -->
-      <mat-toolbar class="!bg-slate-900 !text-white flex justify-between items-center shadow-lg z-20 !px-6 border-b border-slate-800">
-        <div class="flex items-center space-x-3.5">
-          <div class="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md border border-slate-700/50">
-            <img src="assets/logo.svg" alt="RARAS Technologies" class="w-full h-full object-contain" />
+
+      <!-- ── Top Toolbar ── -->
+      <header class="toolbar-bar flex items-center justify-between px-5 shrink-0 z-20">
+
+        <!-- Brand -->
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm border border-white/10 shrink-0">
+            <img src="assets/logo.svg" alt="RARAS" class="w-full h-full object-contain p-1" />
           </div>
-          <div>
-            <span class="font-extrabold text-xl tracking-tight font-sans text-white">Raras <span class="text-rose-500 font-bold">TECHNOLOGIES</span></span>
-            <span class="block text-[10px] text-slate-400 font-semibold tracking-widest uppercase -mt-0.5">Organization Asset Management System</span>
+          <div class="leading-none">
+            <span class="block text-sm font-bold text-white tracking-tight">
+              Raras <span class="text-rose-400">Technologies</span>
+            </span>
+            <span class="block text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Asset Management</span>
           </div>
         </div>
 
-        <div class="flex items-center space-x-4" *ngIf="user()">
-          <!-- Role Badge -->
-          <mat-chip-listbox>
-            <mat-chip-option 
-              [color]="user()?.role === 'Administrator' ? 'primary' : 'accent'" 
-              selectable="false" 
-              selected
-              class="!text-xs !font-bold !bg-cyan-950 !text-cyan-300 !border !border-cyan-500/30">
-              {{ user()?.role }}
-            </mat-chip-option>
-          </mat-chip-listbox>
+        <!-- Right side -->
+        <div class="flex items-center gap-3" *ngIf="user()">
 
-          <!-- User Menu Trigger -->
-          <button mat-button [matMenuTriggerFor]="userMenu" class="flex items-center space-x-2 !text-white hover:!bg-slate-800/60 !rounded-xl !py-1 !px-3 transition-colors">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow">
-              {{ userInitials() }}
-            </div>
-            <span class="hidden md:inline font-semibold text-sm tracking-wide">{{ user()?.fullName }}</span>
-            <mat-icon class="!text-slate-400">arrow_drop_down</mat-icon>
+          <!-- Role pill -->
+          <span class="role-pill">{{ user()?.role }}</span>
+
+          <!-- User menu -->
+          <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
+            <div class="avatar">{{ userInitials() }}</div>
+            <span class="hidden sm:block text-sm font-medium text-slate-200">{{ user()?.fullName }}</span>
+            <mat-icon class="!text-slate-500 !text-[18px] !w-[18px] !h-[18px]">expand_more</mat-icon>
           </button>
-          
-          <mat-menu #userMenu="matMenu" xPosition="before" class="mt-2">
-            <div class="px-4 py-3 border-b border-slate-100 bg-slate-50">
-              <p class="font-bold text-sm text-slate-900">{{ user()?.fullName }}</p>
-              <p class="text-xs text-slate-500">{{ user()?.email }}</p>
+
+          <mat-menu #userMenu="matMenu" xPosition="before">
+            <div class="menu-user-header">
+              <p class="font-semibold text-sm text-slate-900">{{ user()?.fullName }}</p>
+              <p class="text-xs text-slate-500 mt-0.5">{{ user()?.email }}</p>
             </div>
-            <button mat-menu-item (click)="logout()">
-              <mat-icon class="text-rose-500">logout</mat-icon>
-              <span class="font-medium text-slate-700">Logout</span>
+            <button mat-menu-item (click)="logout()" class="menu-logout-item">
+              <mat-icon class="text-rose-500 !text-[18px]">logout</mat-icon>
+              <span class="text-sm text-slate-700 font-medium">Sign out</span>
             </button>
           </mat-menu>
         </div>
-      </mat-toolbar>
+      </header>
 
       <div class="flex flex-1 overflow-hidden">
-        <!-- Sidebar Navigation -->
-        <div class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between border-r border-slate-800 shadow-xl">
-          <mat-nav-list class="flex-1 !pt-4 space-y-1.5 px-3">
-            <a mat-list-item 
-               routerLink="/dashboard" 
-               routerLinkActive="active-nav-item"
-               class="navigation-link !rounded-xl">
-              <mat-icon matListItemIcon class="!text-slate-400">dashboard</mat-icon>
-              <span matListItemTitle class="font-semibold text-sm font-sans tracking-wide">Dashboard</span>
+
+        <!-- ── Sidebar ── -->
+        <nav class="sidebar flex flex-col justify-between shrink-0">
+          <div class="pt-3 px-3 space-y-0.5">
+
+            <a routerLink="/dashboard"
+               routerLinkActive="nav-active"
+               class="nav-item">
+              <mat-icon class="nav-icon">space_dashboard</mat-icon>
+              <span class="nav-label">Dashboard</span>
             </a>
 
-            <a mat-list-item 
-               routerLink="/assets" 
-               routerLinkActive="active-nav-item"
-               class="navigation-link !rounded-xl">
-              <mat-icon matListItemIcon class="!text-slate-400">inventory_2</mat-icon>
-              <span matListItemTitle class="font-semibold text-sm font-sans tracking-wide">Assets</span>
+            <a routerLink="/assets"
+               routerLinkActive="nav-active"
+               class="nav-item">
+              <mat-icon class="nav-icon">inventory_2</mat-icon>
+              <span class="nav-label">Assets</span>
             </a>
 
-            <a mat-list-item 
-               routerLink="/organization-units" 
-               routerLinkActive="active-nav-item"
-               class="navigation-link !rounded-xl">
-              <mat-icon matListItemIcon class="!text-slate-400">account_tree</mat-icon>
-              <span matListItemTitle class="font-semibold text-sm font-sans tracking-wide">Organization Tree</span>
+            <a routerLink="/organization-units"
+               routerLinkActive="nav-active"
+               class="nav-item">
+              <mat-icon class="nav-icon">account_tree</mat-icon>
+              <span class="nav-label">Org Structure</span>
             </a>
-          </mat-nav-list>
 
-          <!-- Sidebar Footer -->
-          <div class="p-4 border-t border-slate-800/80 bg-slate-950/60 flex flex-col items-center text-center">
-            <span class="text-[11px] text-slate-400 font-sans font-medium tracking-wide">RARAS Technologies PLC</span>
-            <span class="text-[10px] text-slate-500 font-sans font-light">Cybersecurity & Enterprise IT</span>
           </div>
-        </div>
 
-        <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8">
+          <!-- Sidebar footer -->
+          <div class="sidebar-footer">
+            <span class="text-[10px] text-slate-500 uppercase tracking-widest">RARAS Technologies PLC</span>
+          </div>
+        </nav>
+
+        <!-- ── Main content ── -->
+        <main class="flex-1 overflow-y-auto bg-[#f5f7fa] p-6 md:p-8">
           <router-outlet></router-outlet>
         </main>
+
       </div>
     </div>
   `,
   styles: [`
-    .navigation-link {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      margin-bottom: 2px;
+    /* ── Toolbar ── */
+    .toolbar-bar {
+      height: 56px;
+      background: #0f172a;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      box-shadow: 0 1px 3px rgb(0 0 0 / .25);
     }
-    .navigation-link:hover {
-      background-color: rgba(255, 255, 255, 0.06) !important;
-      color: #f8fafc !important;
+
+    /* ── Role pill ── */
+    .role-pill {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(99,102,241,0.18);
+      color: #a5b4fc;
+      border: 1px solid rgba(99,102,241,0.28);
+      white-space: nowrap;
     }
-    ::ng-deep .active-nav-item {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%) !important;
-      color: #38bdf8 !important;
-      border-left: 3px solid #0ea5e9 !important;
+
+    /* ── User button ── */
+    .user-btn {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 4px 10px !important;
+      border-radius: 10px !important;
+      transition: background 0.15s !important;
     }
-    ::ng-deep .active-nav-item .mat-icon {
-      color: #38bdf8 !important;
+    .user-btn:hover { background: rgba(255,255,255,0.06) !important; }
+
+    /* ── Avatar ── */
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* ── User menu ── */
+    .menu-user-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #f8fafc;
+      pointer-events: none;
+    }
+    .menu-logout-item { padding: 10px 16px !important; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      background: #0f172a;
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ── Nav items ── */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s ease, color 0.15s ease;
+      color: #94a3b8;
+    }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: #e2e8f0;
+    }
+    .nav-item:hover .nav-icon { color: #e2e8f0 !important; }
+
+    .nav-icon {
+      font-size: 19px !important;
+      width: 19px !important;
+      height: 19px !important;
+      line-height: 19px !important;
+      color: #64748b;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+
+    .nav-label {
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Active nav ── */
+    .nav-active {
+      background: rgba(99,102,241,0.15) !important;
+      color: #a5b4fc !important;
+      border-left: 2px solid #6366f1;
+      padding-left: 10px;
+    }
+    .nav-active .nav-icon { color: #a5b4fc !important; }
+
+    /* ── Sidebar footer ── */
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      text-align: center;
     }
   `]
 })
