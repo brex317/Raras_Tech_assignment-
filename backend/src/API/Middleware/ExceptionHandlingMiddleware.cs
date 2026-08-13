@@ -36,7 +36,7 @@ public class ExceptionHandlingMiddleware
         switch (exception)
         {
             case UnauthorizedAccessException:
-                code = HttpStatusCode.Unauthorized;
+                code = HttpStatusCode.Forbidden;
                 result.Message = exception.Message;
                 break;
 
