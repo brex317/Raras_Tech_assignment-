@@ -9,6 +9,7 @@ public class AssetDocumentService : IAssetDocumentService
 {
     private readonly IRepository<AssetDocument> _documentRepository;
     private readonly IRepository<Asset> _assetRepository;
+    private readonly IRepository<AssetHistory> _historyRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly IUnitOfWork _unitOfWork;
 
@@ -31,11 +32,13 @@ public class AssetDocumentService : IAssetDocumentService
     public AssetDocumentService(
         IRepository<AssetDocument> documentRepository,
         IRepository<Asset> assetRepository,
+        IRepository<AssetHistory> historyRepository,
         IFileStorageService fileStorageService,
         IUnitOfWork unitOfWork)
     {
         _documentRepository = documentRepository;
         _assetRepository = assetRepository;
+        _historyRepository = historyRepository;
         _fileStorageService = fileStorageService;
         _unitOfWork = unitOfWork;
     }
@@ -44,9 +47,9 @@ public class AssetDocumentService : IAssetDocumentService
         Guid assetId, string fileName, string contentType, long fileSize,
         Stream fileStream, DocumentType documentType, Guid userId)
     {
-        // Validate asset exists
-        var asset = await _assetRepository.GetByIdAsync(assetId);
-        if (asset == null)
+        // Validate asset exists — use base FindAsync to avoid loading collections
+        var assets = await _assetRepository.FindAsync(a => a.Id == assetId);
+        if (!assets.Any())
             throw new KeyNotFoundException($"Asset with ID {assetId} not found.");
 
         // Validate file type
@@ -63,6 +66,7 @@ public class AssetDocumentService : IAssetDocumentService
         // Save file to storage
         var storagePath = await _fileStorageService.SaveFileAsync(fileStream, fileName);
 
+        // Create document entity — FK only, do NOT touch asset navigation
         var document = new AssetDocument
         {
             Id = Guid.NewGuid(),
@@ -78,8 +82,8 @@ public class AssetDocumentService : IAssetDocumentService
 
         await _documentRepository.AddAsync(document);
 
-        // Add history entry
-        asset.History.Add(new AssetHistory
+        // Add history entry directly via its own repository — do NOT use asset.History.Add()
+        await _historyRepository.AddAsync(new AssetHistory
         {
             Id = Guid.NewGuid(),
             ChangeType = AssetChangeType.DocumentAdded,
@@ -122,20 +126,16 @@ public class AssetDocumentService : IAssetDocumentService
         // Delete from storage
         await _fileStorageService.DeleteFileAsync(document.StoragePath);
 
-        // Add history entry
-        var asset = await _assetRepository.GetByIdAsync(document.AssetId);
-        if (asset != null)
+        // Add history entry directly — do NOT load asset and mutate asset.History
+        await _historyRepository.AddAsync(new AssetHistory
         {
-            asset.History.Add(new AssetHistory
-            {
-                Id = Guid.NewGuid(),
-                ChangeType = AssetChangeType.DocumentRemoved,
-                OldValue = $"Document '{document.FileName}' removed",
-                Timestamp = DateTime.UtcNow,
-                AssetId = document.AssetId,
-                ChangedByUserId = userId
-            });
-        }
+            Id = Guid.NewGuid(),
+            ChangeType = AssetChangeType.DocumentRemoved,
+            OldValue = $"Document '{document.FileName}' removed",
+            Timestamp = DateTime.UtcNow,
+            AssetId = document.AssetId,
+            ChangedByUserId = userId
+        });
 
         _documentRepository.Delete(document);
         await _unitOfWork.SaveChangesAsync();
