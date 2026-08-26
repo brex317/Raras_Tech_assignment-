@@ -50,4 +50,8 @@ export class AssetService {
   assignAsset(id: string, organizationUnitId: string): Observable<AssetDto> {
     return this.http.put<AssetDto>(`${this.apiUrl}/${id}/assign`, { organizationUnitId });
   }
+
+  deleteAsset(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

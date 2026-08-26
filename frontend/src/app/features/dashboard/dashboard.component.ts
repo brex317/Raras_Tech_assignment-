@@ -27,7 +27,7 @@ import { OrganizationUnitService } from '../../core/services/organization-unit.s
           </p>
         </div>
         <div class="welcome-badge hidden md:flex">
-          <mat-icon class="!text-indigo-300 !text-[32px] !w-8 !h-8">shield</mat-icon>
+          <mat-icon class="text-indigo-300! text-[32px]! w-8! h-8!">shield</mat-icon>
         </div>
       </div>
 

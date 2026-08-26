@@ -9,6 +9,7 @@ import { OrganizationUnitService } from '../../../core/services/organization-uni
 import { AuthService } from '../../../core/services/auth.service';
 import { OrganizationUnitTreeDto, OrganizationUnitDto } from '../../../core/models/models';
 import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-org-unit-tree',
@@ -109,6 +110,11 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
                       title="Edit" class="action-icon-btn edit"
                       [attr.aria-label]="'Edit ' + node.name">
                 <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button (click)="onDelete(node)" 
+                      title="Delete" class="action-icon-btn delete"
+                      [attr.aria-label]="'Delete ' + node.name">
+                <mat-icon>delete</mat-icon>
               </button>
             </div>
           </div>
@@ -400,6 +406,14 @@ import { OrgUnitFormComponent } from '../org-unit-form/org-unit-form.component';
       background: #ecfeff !important;
     }
 
+    .action-icon-btn.delete {
+      color: #f43f5e !important;
+    }
+
+    .action-icon-btn.delete:hover {
+      background: #fff1f2 !important;
+    }
+
     .node-children {
       margin-top: 2px;
     }
@@ -593,6 +607,46 @@ export class OrgUnitTreeComponent implements OnInit {
     this.orgUnitService.getById(node.id).subscribe({
       next: (unit) => { this.loading.set(false); this.openFormDialog(unit); },
       error: () => { this.loading.set(false); this.snackBar.open('Error loading unit.', 'Close', { duration: 4000 }); }
+    });
+  }
+
+  onDelete(node: OrganizationUnitTreeDto): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '90vw',
+      maxWidth: '450px',
+      data: {
+        title: 'Delete Organization Unit',
+        message: `Are you sure you want to delete "${node.name}" (${node.code})? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        type: 'danger'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.loading.set(true);
+        this.orgUnitService.delete(node.id).subscribe({
+          next: () => {
+            this.loading.set(false);
+            this.snackBar.open('Organization unit deleted successfully.', 'Close', {
+              duration: 3000,
+              horizontalPosition: 'end',
+              verticalPosition: 'top'
+            });
+            this.loadTree();
+          },
+          error: (err) => {
+            this.loading.set(false);
+            const message = err.error?.message || 'Error deleting organization unit. It may have child units or assets assigned.';
+            this.snackBar.open(message, 'Close', {
+              duration: 5000,
+              horizontalPosition: 'end',
+              verticalPosition: 'top'
+            });
+          }
+        });
+      }
     });
   }
 

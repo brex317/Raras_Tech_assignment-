@@ -9,12 +9,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AssetService } from '../../../core/services/asset.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AssetDto, AssetCategoryDto } from '../../../core/models/models';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-asset-list',
@@ -30,7 +33,9 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatDialogModule,
+    MatSnackBarModule
   ],
   template: `
     <div class="space-y-5 animate-fade-in">
@@ -134,6 +139,10 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
                 <button mat-icon-button [routerLink]="['/assets/edit', row.id]"
                         *ngIf="isAdminOrManager()" title="Edit" class="icon-btn-edit">
                   <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button (click)="onDeleteAsset(row)"
+                        *ngIf="isAdminOrManager()" title="Delete" class="icon-btn-delete">
+                  <mat-icon>delete</mat-icon>
                 </button>
               </td>
             </ng-container>
@@ -240,6 +249,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
     /* Icon buttons */
     .icon-btn-view { color: #6366f1 !important; }
     .icon-btn-edit { color: #06b6d4 !important; }
+    .icon-btn-delete { color: #f43f5e !important; }
+    .icon-btn-delete:hover { background: #fff1f2 !important; }
 
     /* Empty state */
     .empty-state { text-align: center; padding: 56px 24px; }
@@ -252,6 +263,8 @@ export class AssetListComponent implements OnInit {
   private readonly assetService = inject(AssetService);
   private readonly categoryService = inject(CategoryService);
   private readonly authService = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly searchControl   = new FormControl('');
   readonly categoryControl = new FormControl<string | null>(null);
@@ -322,5 +335,45 @@ export class AssetListComponent implements OnInit {
     if (status === 'InRepair')  return 'In Repair';
     if (status === 'InStorage') return 'In Storage';
     return status;
+  }
+
+  onDeleteAsset(asset: AssetDto): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '90vw',
+      maxWidth: '450px',
+      data: {
+        title: 'Delete Asset',
+        message: `Are you sure you want to delete "${asset.name}" (${asset.assetTag})? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        type: 'danger'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.loading.set(true);
+        this.assetService.deleteAsset(asset.id).subscribe({
+          next: () => {
+            this.loading.set(false);
+            this.snackBar.open('Asset deleted successfully.', 'Close', {
+              duration: 3000,
+              horizontalPosition: 'end',
+              verticalPosition: 'top'
+            });
+            this.loadAssets();
+          },
+          error: (err) => {
+            this.loading.set(false);
+            const message = err.error?.message || 'Error deleting asset. You may not have permission to delete this asset.';
+            this.snackBar.open(message, 'Close', {
+              duration: 5000,
+              horizontalPosition: 'end',
+              verticalPosition: 'top'
+            });
+          }
+        });
+      }
+    });
   }
 }

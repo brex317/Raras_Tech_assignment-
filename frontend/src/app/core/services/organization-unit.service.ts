@@ -31,4 +31,8 @@ export class OrganizationUnitService {
   update(id: string, orgUnit: any): Observable<OrganizationUnitDto> {
     return this.http.put<OrganizationUnitDto>(`${this.apiUrl}/${id}`, orgUnit);
   }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }
