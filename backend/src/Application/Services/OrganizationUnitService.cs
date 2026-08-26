@@ -143,6 +143,26 @@ public class OrganizationUnitService : IOrganizationUnitService
         return MapToDto(unit);
     }
 
+    public async Task DeleteAsync(Guid id)
+    {
+        var unit = await _repository.GetByIdAsync(id);
+        if (unit == null)
+            throw new KeyNotFoundException($"Organization unit with ID {id} not found.");
+
+        // Check if unit has children
+        var allUnits = await _repository.GetAllAsync();
+        var hasChildren = allUnits.Any(u => u.ParentId == id);
+        if (hasChildren)
+            throw new InvalidOperationException("Cannot delete an organization unit that has child units. Please delete or reassign child units first.");
+
+        // Check if unit has assets
+        if (unit.Assets != null && unit.Assets.Any())
+            throw new InvalidOperationException($"Cannot delete an organization unit that has {unit.Assets.Count} asset(s). Please reassign or delete the assets first.");
+
+        _repository.Delete(unit);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     private async Task UpdateDescendantPathsAsync(OrganizationUnit parent)
     {
         var allUnits = await _repository.GetAllAsync();

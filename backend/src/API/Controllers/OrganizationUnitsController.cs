@@ -53,4 +53,12 @@ public class OrganizationUnitsController : ControllerBase
         var result = await _organizationUnitService.UpdateAsync(id, request);
         return Ok(result);
     }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await _organizationUnitService.DeleteAsync(id);
+        return NoContent();
+    }
 }

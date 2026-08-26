@@ -10,4 +10,5 @@ public interface IAssetService
      Task<AssetDto> CreateAssetAsync(CreateAssetRequest request, Guid userId, string userRole, Guid? userOrgUnitId);
      Task<AssetDto> UpdateAssetAsync(Guid id, UpdateAssetRequest request, Guid userId, string userRole, Guid? userOrgUnitId);
      Task<AssetDto> AssignAssetAsync(Guid id, AssignAssetRequest request, Guid userId, string userRole, Guid? userOrgUnitId);
+     Task DeleteAssetAsync(Guid id, Guid userId, string userRole, Guid? userOrgUnitId);
 }

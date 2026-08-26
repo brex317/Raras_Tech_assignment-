@@ -284,6 +284,21 @@ public class AssetService : IAssetService
         return MapToDto(asset);
     }
 
+    public async Task DeleteAssetAsync(Guid id, Guid userId, string userRole, Guid? userOrgUnitId)
+    {
+        var asset = await _assetRepository.GetByIdAsync(id);
+        if (asset == null)
+            throw new KeyNotFoundException($"Asset with ID {id} not found.");
+
+        // Authorization check: Managers can only delete assets from their own organizational unit
+        if (asset.OrganizationUnit != null)
+            await EnsureManagerCanAccessUnitAsync(userRole, userOrgUnitId, asset.OrganizationUnit);
+
+        // Delete the asset
+        _assetRepository.Delete(asset);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     /// <summary>
     /// Managers may only manage assets within their own organization unit or its descendants.
     /// Administrators are unrestricted. Uses the same materialized-path pattern as OrganizationUnitService.

@@ -70,6 +70,17 @@ public class AssetsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Administrator,Manager")]
+    public async Task<IActionResult> DeleteAsset(Guid id)
+    {
+        var userId = GetUserId();
+        var userRole = GetUserRole();
+        var userOrgUnitId = GetUserOrgUnitId();
+        await _assetService.DeleteAssetAsync(id, userId, userRole, userOrgUnitId);
+        return NoContent();
+    }
+
     private Guid GetUserId()
     {
         var nameIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

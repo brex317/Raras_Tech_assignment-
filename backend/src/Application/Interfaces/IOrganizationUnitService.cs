@@ -9,4 +9,5 @@ public interface IOrganizationUnitService
     Task<OrganizationUnitDto> GetByIdAsync(Guid id);
     Task<OrganizationUnitDto> CreateAsync(CreateOrganizationUnitRequest request);
     Task<OrganizationUnitDto> UpdateAsync(Guid id, UpdateOrganizationUnitRequest request);
+    Task DeleteAsync(Guid id);
 }
